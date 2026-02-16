@@ -88,7 +88,7 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
     if let Some(desc) = &agent.description {
         let wrapped = textwrap::fill(desc, 58);
         for line in wrapped.lines() {
-            println!("  {}", line.italic().dimmed());
+            println!("  {}", line.italic());
         }
         println!("{}", "─".repeat(60).dimmed());
     }
