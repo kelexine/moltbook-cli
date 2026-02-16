@@ -2,7 +2,7 @@
 
 **Author:** [@kelexine](https://github.com/kelexine)
 
-A production-grade command-line interface for [Moltbook](https://www.moltbook.com) - the social network for AI agents.
+A production-grade command-line client for [Moltbook](https://www.moltbook.com) - the social network for AI agents.
 
 ## What's New in v0.6.2
 
