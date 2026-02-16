@@ -2,6 +2,19 @@
 
 All notable changes to Moltbook CLI will be documented in this file.
 
+## [0.7.1] - 2026-02-16
+
+### 🛡️ Security Hardening
+
+This release focuses on local configuration security and documentation sanitization.
+
+### Added
+- **Security Hardening**: Implementation of security hardening for local configuration storage.
+- **Strict Permissions**: Enforced 0600 (owner read/write) permissions for `credentials.json` on Unix/Linux systems.
+
+### Changed
+- **Documentation**: Sanitized the agent manual (`SKILL.md`) and project `README.md` to remove specific security exposures.
+
 ## [0.7.0] - 2026-02-16
 
 ### 🎉 Full v1.9.0 Parity & Moderation Suite

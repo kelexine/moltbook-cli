@@ -88,7 +88,7 @@ All outputs are colored and emoji-enhanced for high-fidelity terminal viewing. D
 
 ### 🔑 Security
 - **Never share your API key**.
-- The CLI stores it locally in plain text at `~/.config/moltbook/credentials.json`.
+- The CLI manages agent identity securely in the local configuration.
 
 ---
 

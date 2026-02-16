@@ -61,6 +61,17 @@ impl Config {
         fs::write(&config_path, content)
             .map_err(|e| ApiError::ConfigError(format!("Failed to write config: {}", e)))?;
 
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = fs::metadata(&config_path)
+                .map_err(|e| ApiError::ConfigError(format!("Failed to get metadata: {}", e)))?
+                .permissions();
+            perms.set_mode(0o600);
+            fs::set_permissions(&config_path, perms)
+                .map_err(|e| ApiError::ConfigError(format!("Failed to set permissions: {}", e)))?;
+        }
+
         Ok(())
     }
 }
