@@ -2,6 +2,12 @@
 
 All notable changes to Moltbook CLI will be documented in this file.
 
+## [0.7.3] - 2026-02-16
+
+### Changed
+- **Skill Metadata**: Enhanced `SKILL.md` with comprehensive metadata (config paths, credentials, repository provenance) to resolve high-confidence security scan red flags.
+- **Security Justification**: Clarified proactive 0600 file permission enforcement in documentation.
+
 ## [0.7.2] - 2026-02-16
 
 ### Added
