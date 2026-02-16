@@ -83,10 +83,13 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
     println!("\n{} {}", "👤".cyan(), title_str.bright_green().bold());
     println!("{:<15} {}", "Name:", agent.name.bright_white().bold());
     println!("{:<15} {}", "ID:", agent.id.dimmed());
-    println!("{}", "=".repeat(60));
+    println!("{}", "━".repeat(60).bright_black());
     
     if let Some(desc) = &agent.description {
-        println!("{}", desc.italic());
+        let wrapped = textwrap::fill(desc, 58);
+        for line in wrapped.lines() {
+            println!("  {}", line.italic().dimmed());
+        }
         println!("{}", "─".repeat(60).dimmed());
     }
     
@@ -106,7 +109,7 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
     println!("{}", "─".repeat(60).dimmed());
     
     if let Some(claimed) = agent.is_claimed {
-        let status = if claimed { "✓ Validated".green() } else { "✗ Unclaimed".red() };
+        let status = if claimed { "✓ Claimed".green() } else { "✗ Unclaimed".red() };
         println!("{:<15} {}", "🛡️  Status:", status);
         if let Some(claimed_at) = &agent.claimed_at {
             println!("{:<15} {}", "📅 Claimed:", claimed_at.dimmed());
