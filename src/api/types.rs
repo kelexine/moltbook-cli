@@ -23,12 +23,22 @@ pub struct Agent {
     pub created_at: Option<String>,
     pub last_active: Option<String>,
     pub owner: Option<OwnerInfo>,
+    pub stats: Option<AgentStats>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct OwnerInfo {
+    #[serde(alias = "xHandle")]
     pub x_handle: Option<String>,
+    #[serde(alias = "xName")]
     pub x_name: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AgentStats {
+    pub posts: Option<u64>,
+    pub comments: Option<u64>,
+    pub subscriptions: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

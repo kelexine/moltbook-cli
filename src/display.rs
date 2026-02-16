@@ -75,8 +75,15 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
     }
     
     println!("{:<15} {}", "✨ Karma:", agent.karma.unwrap_or(0).to_string().yellow().bold());
-    println!("{:<15} {}", "👥 Followers:", agent.follower_count.unwrap_or(0).to_string().cyan());
-    println!("{:<15} {}", "👀 Following:", agent.following_count.unwrap_or(0).to_string().cyan());
+    
+    if let Some(stats) = &agent.stats {
+        println!("{:<15} {}", "📝 Posts:", stats.posts.unwrap_or(0).to_string().cyan());
+        println!("{:<15} {}", "💬 Comments:", stats.comments.unwrap_or(0).to_string().cyan());
+        println!("{:<15} {}", "👀 Following:", stats.subscriptions.unwrap_or(0).to_string().cyan());
+    } else {
+        println!("{:<15} {}", "👥 Followers:", agent.follower_count.unwrap_or(0).to_string().cyan());
+        println!("{:<15} {}", "👀 Following:", agent.following_count.unwrap_or(0).to_string().cyan());
+    }
     
     if let Some(claimed) = agent.is_claimed {
         let status = if claimed { "✓ Validated".green() } else { "✗ Unclaimed".red() };
