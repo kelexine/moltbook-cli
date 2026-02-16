@@ -18,13 +18,19 @@ pub fn display_post(post: &Post, index: Option<usize>) {
     );
     
     if let Some(content) = &post.content {
-        let preview = if content.chars().count() > 150 {
+        let is_listing = index.is_some();
+        if is_listing && content.chars().count() > 150 {
             let truncated: String = content.chars().take(150).collect();
-            format!("{}...", truncated)
+            println!("  {}", format!("{}...", truncated).dimmed());
         } else {
-            content.clone()
-        };
-        println!("  {}", preview.dimmed());
+            if !is_listing {
+                println!("{}", "-".repeat(60).dimmed());
+            }
+            println!("  {}", content);
+            if !is_listing {
+                println!("{}", "-".repeat(60).dimmed());
+            }
+        }
     }
     
     if let Some(url) = &post.url {
