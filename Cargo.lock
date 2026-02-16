@@ -774,6 +774,7 @@ dependencies = [
  "colored",
  "dialoguer",
  "dirs",
+ "mime_guess",
  "predicates",
  "reqwest",
  "serde",

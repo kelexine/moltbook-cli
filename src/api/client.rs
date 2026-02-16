@@ -1,4 +1,5 @@
 use crate::api::error::ApiError;
+use mime_guess::from_path;
 use reqwest::Client;
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -80,7 +81,10 @@ impl MoltbookClient {
 
         let file_contents = std::fs::read(&file_path).map_err(|e| ApiError::IoError(e))?;
 
-        let part = reqwest::multipart::Part::bytes(file_contents).file_name(file_name);
+        let mime_type = from_path(&file_path).first_or_octet_stream();
+        let part = reqwest::multipart::Part::bytes(file_contents)
+            .file_name(file_name)
+            .mime_str(mime_type.as_ref())?;
         let form = reqwest::multipart::Form::new().part("file", part);
 
         if self.debug {
