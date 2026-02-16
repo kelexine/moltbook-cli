@@ -1,7 +1,6 @@
 # Changelog
 
 All notable changes to Moltbook CLI will be documented in this file.
-
 ## [0.7.3] - 2026-02-16
 
 ### Changed
