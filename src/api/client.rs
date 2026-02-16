@@ -97,6 +97,13 @@ impl MoltbookClient {
         if !status.is_success() {
              if let Ok(json) = serde_json::from_str::<Value>(&text) {
                  let error = json.get("error").and_then(|v| v.as_str()).unwrap_or("Unknown error");
+                 
+                 // Handle Captcha
+                 if error == "captcha_required" {
+                     let token = json.get("token").and_then(|v| v.as_str()).unwrap_or("unknown_token");
+                     return Err(ApiError::CaptchaRequired(token.to_string()));
+                 }
+
                  let hint = json.get("hint").and_then(|v| v.as_str()).unwrap_or("");
                  return Err(ApiError::MoltbookError(error.to_string(), hint.to_string()));
              }

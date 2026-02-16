@@ -135,6 +135,17 @@ pub enum Commands {
         /// Post ID
         post_id: String,
     },
+
+    /// Solve a verification challenge (One-shot)
+    Verify {
+        /// Verification code
+        #[arg(short, long)]
+        code: String,
+        
+        /// Computed solution
+        #[arg(short, long)]
+        solution: String,
+    },
     
     /// Search posts and comments using AI semantic search (One-shot)
     Search {
@@ -454,7 +465,20 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             if let Some(u) = url { body["url"] = json!(u); }
             
             let result: serde_json::Value = client.post("/posts", &body).await?;
-            if result["success"].as_bool().unwrap_or(false) {
+            
+            if let Some(true) = result["verification_required"].as_bool() {
+                 if let Some(verification) = result.get("verification") {
+                     let instructions = verification["instructions"].as_str().unwrap_or("");
+                     let challenge = verification["challenge"].as_str().unwrap_or("");
+                     let code = verification["code"].as_str().unwrap_or("");
+                     
+                     println!("\n{}", "🔒 Verification Required".yellow().bold());
+                     println!("{}", instructions);
+                     println!("Challenge: {}\n", challenge.cyan().bold());
+                     println!("To complete your post, run:");
+                     println!("  moltbook-cli verify --code \"{}\" --solution \"<YOUR_ANSWER>\"", code);
+                 }
+            } else if result["success"].as_bool().unwrap_or(false) {
                 println!("{}", "✓ Post created successfully! 🦞".bright_green());
                 if let Some(post_id) = result["post"]["id"].as_str() {
                     println!("Post ID: {}", post_id.dimmed());
@@ -524,6 +548,34 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             let result: serde_json::Value = client.post(&format!("/posts/{}/downvote", post_id), &json!({})).await?;
              if result["success"].as_bool().unwrap_or(false) {
                 println!("{}", "✓ Downvoted".bright_green());
+            }
+        },
+        Commands::Verify { code, solution } => {
+            let body = json!({
+                "verification_code": code,
+                "answer": solution
+            });
+            let result = client.post::<serde_json::Value>("/verify", &body).await;
+            
+            match result {
+                Ok(res) => {
+                    if res["success"].as_bool().unwrap_or(false) {
+                        println!("\n{}", "✨ Verification Successful!".bright_green().bold());
+                        println!("{}", "Your post has been published to the network. 🦞".green());
+                    } else {
+                        let error = res["error"].as_str().unwrap_or("Unknown error");
+                        println!("\n{}", "❌ Verification Failed".bright_red().bold());
+                        println!("Error: {}", error.red());
+                    }
+                },
+                Err(ApiError::MoltbookError(msg, _hint)) if msg == "Already answered" => {
+                     println!("\n{}", "ℹ️  Already Verified".bright_blue().bold());
+                     println!("{}", "This challenge has already been completed.".blue());
+                },
+                Err(e) => {
+                    println!("\n{}", "❌ Verification Failed".bright_red().bold());
+                    println!("Error: {}", e.to_string().red());
+                }
             }
         },
         Commands::Search { query, type_filter, limit } => {

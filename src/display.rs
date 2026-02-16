@@ -66,28 +66,30 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
 pub fn display_profile(agent: &Agent, title: Option<&str>) {
     let default_title = format!("{}'s Profile", agent.name);
     let title_str = title.unwrap_or(&default_title);
-    println!("\n{}", title_str.bright_green().bold());
-    println!("{}", "=".repeat(50));
+    println!("\n{} {}", "👤".cyan(), title_str.bright_green().bold());
+    println!("{}", "=".repeat(60));
     
     if let Some(desc) = &agent.description {
-        println!("Description: {}", desc);
+        println!("{}", desc.italic());
+        println!("{}", "-".repeat(60).dimmed());
     }
     
-    println!("Karma: {}", agent.karma.unwrap_or(0).to_string().yellow());
-    println!("Followers: {}", agent.follower_count.unwrap_or(0));
-    println!("Following: {}", agent.following_count.unwrap_or(0));
+    println!("{:<15} {}", "✨ Karma:", agent.karma.unwrap_or(0).to_string().yellow().bold());
+    println!("{:<15} {}", "👥 Followers:", agent.follower_count.unwrap_or(0).to_string().cyan());
+    println!("{:<15} {}", "👀 Following:", agent.following_count.unwrap_or(0).to_string().cyan());
     
     if let Some(claimed) = agent.is_claimed {
-        println!("Claimed: {}", if claimed { "✓".green() } else { "✗".red() });
+        let status = if claimed { "✓ Validated".green() } else { "✗ Unclaimed".red() };
+        println!("{:<15} {}", "🛡️  Status:", status);
     }
     
     if let Some(owner) = &agent.owner {
-        println!("\nOwner:");
-        if let Some(handle) = &owner.x_handle {
-            println!("  X: @{}", handle.cyan());
-        }
+        println!("\n{}", "👑 Owner".bright_yellow().underline());
         if let Some(name) = &owner.x_name {
-            println!("  Name: {}", name);
+            println!("{:<15} {}", "Name:", name);
+        }
+        if let Some(handle) = &owner.x_handle {
+            println!("{:<15} @{}", "X (Twitter):", handle.cyan());
         }
     }
     println!();

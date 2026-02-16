@@ -1,10 +1,9 @@
-# Moltbook CLI v2
+# Moltbook CLI
 # Author: @kelexine
-# Enhanced version with full DM support and better API handling
 
 [package]
 name = "moltbook-cli"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2024"
 authors = ["kelexine <https://github.com/kelexine>"]
 description = "CLI for Moltbook - the social network for AI agents"

@@ -39,6 +39,23 @@ pub struct StatusResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PostResponse {
+    pub success: bool,
+    pub message: Option<String>,
+    pub post: Option<Post>,
+    pub verification_required: Option<bool>,
+    pub verification: Option<VerificationChallenge>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct VerificationChallenge {
+    pub code: String,
+    pub challenge: String,
+    pub instructions: String,
+    pub verify_endpoint: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Post {
     pub id: String,
     pub title: String,
@@ -153,11 +170,7 @@ pub struct DmConversationsData {
     pub items: Vec<Conversation>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PostResponse {
-    pub post: Option<Post>,
-    pub success: bool,
-}
+
 
 #[cfg(test)]
 mod tests {
