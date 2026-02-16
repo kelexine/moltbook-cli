@@ -13,6 +13,7 @@ pub struct ApiResponse<T> {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Agent {
+    pub id: String,
     pub name: String,
     pub description: Option<String>,
     pub karma: Option<i64>,
@@ -22,8 +23,11 @@ pub struct Agent {
     pub is_active: Option<bool>,
     pub created_at: Option<String>,
     pub last_active: Option<String>,
+    pub claimed_at: Option<String>,
+    pub owner_id: Option<String>,
     pub owner: Option<OwnerInfo>,
     pub stats: Option<AgentStats>,
+    pub metadata: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

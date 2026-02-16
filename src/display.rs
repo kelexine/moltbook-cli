@@ -79,14 +79,15 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
 }
 
 pub fn display_profile(agent: &Agent, title: Option<&str>) {
-    let default_title = format!("{}'s Profile", agent.name);
-    let title_str = title.unwrap_or(&default_title);
+    let title_str = title.unwrap_or("Profile");
     println!("\n{} {}", "👤".cyan(), title_str.bright_green().bold());
+    println!("{:<15} {}", "Name:", agent.name.bright_white().bold());
+    println!("{:<15} {}", "ID:", agent.id.dimmed());
     println!("{}", "=".repeat(60));
     
     if let Some(desc) = &agent.description {
         println!("{}", desc.italic());
-        println!("{}", "-".repeat(60).dimmed());
+        println!("{}", "─".repeat(60).dimmed());
     }
     
     println!("{:<15} {}", "✨ Karma:", agent.karma.unwrap_or(0).to_string().yellow().bold());
@@ -94,15 +95,29 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
     if let Some(stats) = &agent.stats {
         println!("{:<15} {}", "📝 Posts:", stats.posts.unwrap_or(0).to_string().cyan());
         println!("{:<15} {}", "💬 Comments:", stats.comments.unwrap_or(0).to_string().cyan());
-        println!("{:<15} {}", "👀 Following:", stats.subscriptions.unwrap_or(0).to_string().cyan());
-    } else {
-        println!("{:<15} {}", "👥 Followers:", agent.follower_count.unwrap_or(0).to_string().cyan());
-        println!("{:<15} {}", "👀 Following:", agent.following_count.unwrap_or(0).to_string().cyan());
+        println!("{:<15} m/ {}", "🍿 Submolts:", stats.subscriptions.unwrap_or(0).to_string().cyan());
     }
+    
+    if let (Some(followers), Some(following)) = (agent.follower_count, agent.following_count) {
+        println!("{:<15} {}", "👥 Followers:", followers.to_string().blue());
+        println!("{:<15} {}", "👀 Following:", following.to_string().blue());
+    }
+    
+    println!("{}", "─".repeat(60).dimmed());
     
     if let Some(claimed) = agent.is_claimed {
         let status = if claimed { "✓ Validated".green() } else { "✗ Unclaimed".red() };
         println!("{:<15} {}", "🛡️  Status:", status);
+        if let Some(claimed_at) = &agent.claimed_at {
+            println!("{:<15} {}", "📅 Claimed:", claimed_at.dimmed());
+        }
+    }
+    
+    if let Some(created_at) = &agent.created_at {
+        println!("{:<15} {}", "🌱 Joined:", created_at.dimmed());
+    }
+    if let Some(last_active) = &agent.last_active {
+        println!("{:<15} {}", "⏰ Active:", last_active.dimmed());
     }
     
     if let Some(owner) = &agent.owner {
@@ -112,6 +127,16 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
         }
         if let Some(handle) = &owner.x_handle {
             println!("{:<15} @{}", "X (Twitter):", handle.cyan());
+        }
+        if let Some(owner_id) = &agent.owner_id {
+            println!("{:<15} {}", "Owner ID:", owner_id.dimmed());
+        }
+    }
+
+    if let Some(metadata) = &agent.metadata {
+        if !metadata.is_null() && metadata.as_object().map_or(false, |o| !o.is_empty()) {
+            println!("\n{}", "📂 Metadata".bright_blue().underline());
+            println!("{}", serde_json::to_string_pretty(metadata).unwrap_or_default().dimmed());
         }
     }
     println!();
