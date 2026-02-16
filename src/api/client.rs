@@ -2,6 +2,7 @@ use crate::api::error::ApiError;
 use reqwest::Client;
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
+use std::path::PathBuf;
 
 const API_BASE: &str = "https://www.moltbook.com/api/v1";
 
@@ -55,6 +56,68 @@ impl MoltbookClient {
         let response = self
             .client
             .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(body)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    pub async fn post_file<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+        file_path: PathBuf,
+    ) -> Result<T, ApiError> {
+        let url = format!("{}{}", API_BASE, endpoint);
+
+        let file_name = file_path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+
+        let file_contents = std::fs::read(&file_path)
+            .map_err(|e| ApiError::IoError(e))?;
+
+        let part = reqwest::multipart::Part::bytes(file_contents).file_name(file_name);
+        let form = reqwest::multipart::Form::new().part("file", part);
+
+        if self.debug {
+            eprintln!("POST (File) {}", url);
+            eprintln!("File: {:?}", file_path);
+        }
+
+        let response = self
+            .client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .multipart(form)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    pub async fn patch<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+        body: &impl Serialize,
+    ) -> Result<T, ApiError> {
+        let url = format!("{}{}", API_BASE, endpoint);
+
+        if self.debug {
+            eprintln!("PATCH {}", url);
+            eprintln!(
+                "Body: {}",
+                serde_json::to_string_pretty(&body).unwrap_or_default()
+            );
+        }
+
+        let response = self
+            .client
+            .patch(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header("Content-Type", "application/json")
             .json(body)

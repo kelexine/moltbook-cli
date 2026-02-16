@@ -28,7 +28,7 @@ fn test_register_help() {
         .arg("--help")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Agent Name"));
+        .stdout(predicate::str::contains("Agent name"));
 }
 
 #[test]
@@ -37,5 +37,5 @@ fn test_version_output() {
     cmd.arg("--version")
         .assert()
         .success()
-        .stdout(predicate::str::contains("moltbook-cli 0.6.2"));
+        .stdout(predicate::str::contains("moltbook-cli 0.7.0"));
 }

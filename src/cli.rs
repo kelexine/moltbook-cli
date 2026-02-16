@@ -32,19 +32,19 @@ pub struct Cli {
     pub debug: bool,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Initialize Moltbook CLI configuration (Interactive)
+    /// Initialize configuration
     Init,
 
     /// Register a new agent (One-shot | Interactive)
     Register {
-        /// Agent Name
-        #[arg(default_value = None)]
+        /// Agent name
+        #[arg(short, long)]
         name: Option<String>,
 
-        /// Description
-        #[arg(default_value = None)]
+        /// Agent description
+        #[arg(short, long)]
         description: Option<String>,
     },
 
@@ -53,6 +53,7 @@ pub enum Commands {
 
     /// Get your personalized feed (One-shot)
     Feed {
+        /// Sort order (hot, new, top, rising)
         #[arg(short, long, default_value = "hot")]
         sort: String,
 
@@ -62,6 +63,7 @@ pub enum Commands {
 
     /// Get global posts (not personalized) (One-shot)
     Global {
+        /// Sort order (hot, new, top, rising)
         #[arg(short, long, default_value = "hot")]
         sort: String,
 
@@ -93,6 +95,7 @@ pub enum Commands {
         /// Submolt name
         name: String,
 
+        /// Sort order (hot, new, top, rising)
         #[arg(short, long, default_value = "hot")]
         sort: String,
 
@@ -111,6 +114,7 @@ pub enum Commands {
         /// Post ID
         post_id: String,
 
+        /// Sort order (top, new, controversial)
         #[arg(short, long, default_value = "top")]
         sort: String,
     },
@@ -144,6 +148,18 @@ pub enum Commands {
         post_id: String,
     },
 
+    /// Delete a post (One-shot)
+    DeletePost {
+        /// Post ID
+        post_id: String,
+    },
+
+    /// Upvote a comment (One-shot)
+    UpvoteComment {
+        /// Comment ID
+        comment_id: String,
+    },
+
     /// Solve a verification challenge (One-shot)
     Verify {
         /// Verification code
@@ -169,6 +185,20 @@ pub enum Commands {
 
     /// List all submolts (One-shot)
     Submolts,
+
+    /// Create a new submolt (One-shot)
+    CreateSubmolt {
+        /// URL-safe name (lowercase, hyphens)
+        name: String,
+        /// Human-readable name
+        display_name: String,
+        /// Optional description
+        #[arg(short, long)]
+        description: Option<String>,
+        /// Allow cryptocurrency posts
+        #[arg(long)]
+        allow_crypto: bool,
+    },
 
     /// Subscribe to a submolt (One-shot)
     Subscribe {
@@ -199,6 +229,30 @@ pub enum Commands {
         /// Molty name
         name: String,
     },
+
+    /// Update your profile description (One-shot)
+    UpdateProfile {
+        /// New description
+        description: String,
+    },
+
+    /// Upload a new avatar (One-shot)
+    UploadAvatar {
+        /// Path to the image file
+        path: std::path::PathBuf,
+    },
+
+    /// Remove your avatar (One-shot)
+    RemoveAvatar,
+
+    /// Set up owner email for dashboard access (One-shot)
+    SetupOwnerEmail {
+        /// Human owner's email
+        email: String,
+    },
+
+    /// Consolidated check of status, DMs, and feed (Heartbeat)
+    Heartbeat,
 
     /// Check account status (One-shot)
     Status,
@@ -262,6 +316,58 @@ pub enum Commands {
         /// Flag that this needs the other human's input
         #[arg(long)]
         needs_human: bool,
+    },
+
+    /// Pin a post in a submolt you moderate (One-shot)
+    PinPost {
+        /// Post ID
+        post_id: String,
+    },
+
+    /// Unpin a post (One-shot)
+    UnpinPost {
+        /// Post ID
+        post_id: String,
+    },
+
+    /// Update submolt settings (One-shot)
+    SubmoltSettings {
+        /// Submolt name
+        name: String,
+        /// New description
+        #[arg(short, long)]
+        description: Option<String>,
+        /// Banner color (Hex)
+        #[arg(long)]
+        banner_color: Option<String>,
+        /// Theme color (Hex)
+        #[arg(long)]
+        theme_color: Option<String>,
+    },
+
+    /// List submolt moderators (One-shot)
+    SubmoltMods {
+        /// Submolt name
+        name: String,
+    },
+
+    /// Add a submolt moderator (One-shot | Owner Only)
+    SubmoltModAdd {
+        /// Submolt name
+        name: String,
+        /// Agent name to add
+        agent_name: String,
+        /// Role (default: moderator)
+        #[arg(long, default_value = "moderator")]
+        role: String,
+    },
+
+    /// Remove a submolt moderator (One-shot | Owner Only)
+    SubmoltModRemove {
+        /// Submolt name
+        name: String,
+        /// Agent name to remove
+        agent_name: String,
     },
 }
 
@@ -612,6 +718,22 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 println!("{}", "✓ Downvoted".bright_green());
             }
         }
+        Commands::DeletePost { post_id } => {
+            let result: serde_json::Value = client
+                .delete(&format!("/posts/{}", post_id))
+                .await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Post deleted successfully! 🦞".bright_green());
+            }
+        }
+        Commands::UpvoteComment { comment_id } => {
+            let result: serde_json::Value = client
+                .post(&format!("/comments/{}/upvote", comment_id), &json!({}))
+                .await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Comment upvoted! 🦞".bright_green());
+            }
+        }
         Commands::Verify { code, solution } => {
             let body = json!({
                 "verification_code": code,
@@ -690,6 +812,23 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 display::display_submolt(&s);
             }
         }
+        Commands::CreateSubmolt {
+            name,
+            display_name,
+            description,
+            allow_crypto,
+        } => {
+            let body = json!({
+                "name": name,
+                "display_name": display_name,
+                "description": description,
+                "allow_crypto": allow_crypto,
+            });
+            let result: serde_json::Value = client.post("/submolts", &body).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", format!("✓ Submolt m/{} created successfully! 🦞", name).bright_green());
+            }
+        }
         Commands::Subscribe { name } => {
             let result: serde_json::Value = client
                 .post(&format!("/submolts/{}/subscribe", name), &json!({}))
@@ -707,6 +846,55 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                     "{}",
                     format!("✓ Unsubscribed from m/{}", name).bright_green()
                 );
+            }
+        }
+        Commands::UpdateProfile { description } => {
+            let body = json!({ "description": description });
+            let result: serde_json::Value = client.patch("/agents/me", &body).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Profile updated!".bright_green());
+            }
+        }
+        Commands::UploadAvatar { path } => {
+            let result: serde_json::Value = client.post_file("/agents/me/avatar", path).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Avatar uploaded successfully! 🦞".bright_green());
+            }
+        }
+        Commands::RemoveAvatar => {
+            let result: serde_json::Value = client.delete("/agents/me/avatar").await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Avatar removed".bright_green());
+            }
+        }
+        Commands::SetupOwnerEmail { email } => {
+            let body = json!({ "email": email });
+            let result: serde_json::Value = client.post("/agents/me/setup-owner-email", &body).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Owner email set! Check your inbox to verify dashboard access.".bright_green());
+            }
+        }
+        Commands::Heartbeat => {
+            println!("{}", "💓 Heartbeat Consolidated Check".bright_red().bold());
+            println!("{}", "━".repeat(60).bright_black());
+
+            // 1. Status
+            let status: crate::api::types::StatusResponse = client.get("/agents/status").await?;
+            display::display_status(&status);
+
+            // 2. DMs
+            let dm: crate::api::types::DmCheckResponse = client.get("/agents/dm/check").await?;
+            display::display_dm_check(&dm);
+
+            // 3. Feed
+            let feed: crate::api::types::FeedResponse = client.get("/feed?limit=3").await?;
+            println!("{}", "Recent Feed Highlights".bright_green().bold());
+            if feed.posts.is_empty() {
+                println!("{}", "No new posts.".dimmed());
+            } else {
+                for post in feed.posts {
+                    display::display_post(&post, None);
+                }
             }
         }
         Commands::Follow { name } => {
@@ -940,6 +1128,53 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 } else {
                     println!("{}", "✓ Request rejected".bright_green());
                 }
+            }
+        }
+        Commands::PinPost { post_id } => {
+            let result: serde_json::Value = client.post(&format!("/posts/{}/pin", post_id), &json!({})).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Post pinned successfully! 📌".bright_green());
+            }
+        }
+        Commands::UnpinPost { post_id } => {
+            let result: serde_json::Value = client.delete(&format!("/posts/{}/pin", post_id)).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", "✓ Post unpinned".bright_green());
+            }
+        }
+        Commands::SubmoltSettings { name, description, banner_color, theme_color } => {
+            let mut body = json!({});
+            if let Some(d) = description { body["description"] = json!(d); }
+            if let Some(bc) = banner_color { body["banner_color"] = json!(bc); }
+            if let Some(tc) = theme_color { body["theme_color"] = json!(tc); }
+            
+            let result: serde_json::Value = client.patch(&format!("/submolts/{}/settings", name), &body).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", format!("✓ m/{} settings updated!", name).bright_green());
+            }
+        }
+        Commands::SubmoltMods { name } => {
+            let response: serde_json::Value = client.get(&format!("/submolts/{}/moderators", name)).await?;
+            println!("\nModerators for m/{}", name.cyan());
+            if let Some(mods) = response["moderators"].as_array() {
+                for m in mods {
+                    let agent = m["agent_name"].as_str().unwrap_or("unknown");
+                    let role = m["role"].as_str().unwrap_or("moderator");
+                    println!("  - {} ({})", agent.yellow(), role.dimmed());
+                }
+            }
+        }
+        Commands::SubmoltModAdd { name, agent_name, role } => {
+            let body = json!({ "agent_name": agent_name, "role": role });
+            let result: serde_json::Value = client.post(&format!("/submolts/{}/moderators", name), &body).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", format!("✓ Added {} as a moderator to m/{}", agent_name, name).bright_green());
+            }
+        }
+        Commands::SubmoltModRemove { name, agent_name } => {
+            let result: serde_json::Value = client.delete(&format!("/submolts/{}/moderators/{}", name, agent_name)).await?;
+            if result["success"].as_bool().unwrap_or(false) {
+                println!("{}", format!("✓ Removed {} from moderators of m/{}", agent_name, name).bright_green());
             }
         }
     }

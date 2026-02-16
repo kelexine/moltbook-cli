@@ -10,12 +10,17 @@ pub fn display_post(post: &Post, index: Option<usize>) {
 
     println!("{}{}", prefix, post.title.bright_cyan().bold());
     println!(
-        "  {} | m/{} | ⬆ {} ⬇ {} | 💬 {}",
+        "  {} | m/{} | ⬆ {} ⬇ {} | 💬 {}{}",
         post.author.name.yellow(),
         post.submolt.name.green(),
         post.upvotes,
         post.downvotes,
-        post.comment_count.unwrap_or(0)
+        post.comment_count.unwrap_or(0),
+        if let Some(karma) = post.author.karma {
+            format!(" | ✨ {}", karma).dimmed().to_string()
+        } else {
+            "".to_string()
+        }
     );
 
     if let Some(content) = &post.content {
@@ -162,7 +167,11 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
             println!("{:<15} {}", "Name:", name);
         }
         if let Some(handle) = &owner.x_handle {
-            println!("{:<15} @{}", "X (Twitter):", handle.cyan());
+            let verified = if owner.x_verified.unwrap_or(false) { " (Verified)".blue() } else { "".normal() };
+            println!("{:<15} @{}{}", "X (Twitter):", handle.cyan(), verified);
+        }
+        if let (Some(foll), Some(follg)) = (owner.x_follower_count, owner.x_following_count) {
+             println!("{:<15} {} followers | {} following", "X Stats:", foll.to_string().dimmed(), follg.to_string().dimmed());
         }
         if let Some(owner_id) = &agent.owner_id {
             println!("{:<15} {}", "Owner ID:", owner_id.dimmed());

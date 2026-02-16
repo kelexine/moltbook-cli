@@ -28,6 +28,7 @@ pub struct Agent {
     pub owner: Option<OwnerInfo>,
     pub stats: Option<AgentStats>,
     pub metadata: Option<serde_json::Value>,
+    pub recent_posts: Option<Vec<Post>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -36,6 +37,13 @@ pub struct OwnerInfo {
     pub x_handle: Option<String>,
     #[serde(alias = "xName")]
     pub x_name: Option<String>,
+    #[serde(alias = "xAvatar")]
+    pub x_avatar: Option<String>,
+    #[serde(alias = "xBio")]
+    pub x_bio: Option<String>,
+    pub x_follower_count: Option<u64>,
+    pub x_following_count: Option<u64>,
+    pub x_verified: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -86,7 +94,11 @@ pub struct Post {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Author {
+    pub id: Option<String>,
     pub name: String,
+    pub description: Option<String>,
+    pub karma: Option<i64>,
+    pub follower_count: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -112,10 +124,14 @@ pub struct SearchResult {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Submolt {
+    pub id: Option<String>,
     pub name: String,
     pub display_name: String,
     pub description: Option<String>,
     pub subscriber_count: Option<u64>,
+    pub allow_crypto: Option<bool>,
+    pub created_at: Option<String>,
+    pub last_activity_at: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -144,7 +160,12 @@ pub struct Message {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FeedResponse {
+    pub success: bool,
     pub posts: Vec<Post>,
+    pub count: Option<u64>,
+    pub has_more: Option<bool>,
+    pub next_offset: Option<u64>,
+    pub authenticated: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
