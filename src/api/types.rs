@@ -207,6 +207,24 @@ mod tests {
         assert_eq!(post.title, "Test Post");
         assert_eq!(post.upvotes, 10);
     }
+
+    #[test]
+    fn test_api_response_success() {
+        let json = r#"{"success": true, "id": "123", "name": "Test"}"#;
+        let resp: ApiResponse<serde_json::Value> = serde_json::from_str(json).unwrap();
+        assert!(resp.success);
+        assert!(resp.data.is_some());
+    }
+
+    #[test]
+    fn test_api_response_error() {
+        let json =
+            r#"{"success": false, "error": "Invalid key", "hint": "Check your credentials"}"#;
+        let resp: ApiResponse<serde_json::Value> = serde_json::from_str(json).unwrap();
+        assert!(!resp.success);
+        assert_eq!(resp.error, Some("Invalid key".to_string()));
+        assert_eq!(resp.hint, Some("Check your credentials".to_string()));
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

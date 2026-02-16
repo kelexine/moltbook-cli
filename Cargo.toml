@@ -21,3 +21,8 @@ dirs = "5.0"
 urlencoding = "2.1"
 dialoguer = "0.11"
 textwrap = "0.16"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+tempfile = "3.10"

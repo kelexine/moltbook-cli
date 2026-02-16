@@ -34,6 +34,10 @@ impl Config {
     }
 
     fn get_config_path() -> Result<PathBuf, ApiError> {
+        if let Ok(config_dir) = std::env::var("MOLTBOOK_CONFIG_DIR") {
+            return Ok(PathBuf::from(config_dir).join(CONFIG_FILE));
+        }
+
         let home = home_dir().ok_or_else(|| {
             ApiError::ConfigError("Could not determine home directory".to_string())
         })?;
