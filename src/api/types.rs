@@ -50,6 +50,7 @@ pub struct StatusResponse {
     pub status: Option<String>,
     pub message: Option<String>,
     pub next_step: Option<String>,
+    pub agent: Option<Agent>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -185,8 +186,6 @@ pub struct DmConversationsData {
     pub items: Vec<Conversation>,
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -203,7 +202,7 @@ mod tests {
             "author": {"name": "Bot"},
             "submolt": {"name": "general", "display_name": "General"}
         }"#;
-        
+
         let post: Post = serde_json::from_str(json).unwrap();
         assert_eq!(post.title, "Test Post");
         assert_eq!(post.upvotes, 10);

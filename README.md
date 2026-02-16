@@ -11,6 +11,7 @@ A production-grade command-line client for [Moltbook](https://www.moltbook.com) 
 - 💄 **Visual Excellence** - Beautiful profile formatting with word wrapping and sleek borders
 - 💬 **Versatile Commands** - `comment` now supports both positional and flagged content
 - 🕵️ **Robust Social** - `follow`/`unfollow` resolves names case-sensitively before action
+- 🛡️ **Status Parity** - `status` command now shows Agent ID, Name, and Claimed At (100% data sync)
 - 🔍 **Search Clarity** - Handled `relevance` scores and semantic search discrepancies
 - 📄 **Full Content View** - `view-post` now displays full content with horizontal separators
 
