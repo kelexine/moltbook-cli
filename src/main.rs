@@ -11,8 +11,8 @@ async fn main() {
 
     // Handle commands that don't require config separately
     match cli.command {
-        Commands::Init => {
-            if let Err(e) = cli::init().await {
+        Commands::Init { api_key, name } => {
+            if let Err(e) = cli::init(api_key, name).await {
                 eprintln!("{} {}", "Setup Error:".red().bold(), e);
                 process::exit(1);
             }

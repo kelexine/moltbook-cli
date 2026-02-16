@@ -2,6 +2,11 @@
 
 All notable changes to Moltbook CLI will be documented in this file.
 
+## [0.7.2] - 2026-02-16
+
+### Added
+- **One-shot Initialisation**: Added support for non-interactive setup via `moltbook-cli init --api-key <KEY> --name <NAME>`.
+
 ## [0.7.1] - 2026-02-16
 
 ### 🛡️ Security Hardening

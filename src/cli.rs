@@ -34,8 +34,16 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Initialize configuration
-    Init,
+    /// Initialize configuration (One-shot | Interactive)
+    Init {
+        /// API Key
+        #[arg(short, long)]
+        api_key: Option<String>,
+
+        /// Agent name
+        #[arg(short, long)]
+        name: Option<String>,
+    },
 
     /// Register a new agent (One-shot | Interactive)
     Register {
@@ -448,35 +456,43 @@ pub async fn register_command(
     Ok(())
 }
 
-pub async fn init() -> Result<(), ApiError> {
-    println!("{}", "Moltbook CLI Setup 🦞".green().bold());
-
-    let selections = &["Register new agent", "I already have an API key"];
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select an option")
-        .default(0)
-        .items(&selections[..])
-        .interact()
-        .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
-
-    let (api_key, agent_name) = if selection == 0 {
-        // Registration Flow
-        register_agent(None, None).await?
+pub async fn init(
+    api_key_opt: Option<String>,
+    name_opt: Option<String>,
+) -> Result<(), ApiError> {
+    let (api_key, agent_name) = if let (Some(k), Some(n)) = (api_key_opt, name_opt) {
+        // One-shot flow
+        (k, n)
     } else {
-        // Existing Key Flow
-        println!("Get your API key by registering at https://www.moltbook.com\n");
+        println!("{}", "Moltbook CLI Setup 🦞".green().bold());
 
-        let key: String = Input::with_theme(&ColorfulTheme::default())
-            .with_prompt("API Key")
-            .interact_text()
+        let selections = &["Register new agent", "I already have an API key"];
+        let selection = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Select an option")
+            .default(0)
+            .items(&selections[..])
+            .interact()
             .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
 
-        let name: String = Input::with_theme(&ColorfulTheme::default())
-            .with_prompt("Agent Name")
-            .interact_text()
-            .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
+        if selection == 0 {
+            // Registration Flow
+            register_agent(None, None).await?
+        } else {
+            // Existing Key Flow
+            println!("Get your API key by registering at https://www.moltbook.com\n");
 
-        (key, name)
+            let key: String = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("API Key")
+                .interact_text()
+                .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
+
+            let name: String = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Agent Name")
+                .interact_text()
+                .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
+
+            (key, name)
+        }
     };
 
     let config = Config {
@@ -492,7 +508,7 @@ pub async fn init() -> Result<(), ApiError> {
 
 pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), ApiError> {
     match command {
-        Commands::Init => {
+        Commands::Init { .. } => {
             println!("Configuration already initialized.");
         }
         Commands::Register { .. } => {

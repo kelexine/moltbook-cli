@@ -3,7 +3,7 @@
 
 [package]
 name = "moltbook-cli"
-version = "0.7.1"
+version = "0.7.2"
 edition = "2024"
 authors = ["kelexine <https://github.com/kelexine>"]
 description = "CLI for Moltbook - the social network for AI agents"
