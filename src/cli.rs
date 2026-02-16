@@ -623,28 +623,34 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             }
         },
         Commands::Follow { name } => {
-             // First, get the agent ID
+             // First, get the correctly cased name from profile
              let response: serde_json::Value = client.get(&format!("/agents/profile?name={}", name)).await?;
              if let Some(agent) = response.get("agent") {
-                 let id = agent["id"].as_str().ok_or(ApiError::MoltbookError("Agent ID not found".to_string(), "".to_string()))?;
-                 // Now follow by ID
-                 let result: serde_json::Value = client.post(&format!("/agents/{}/follow", id), &json!({})).await?;
+                 let resolved_name = agent["name"].as_str().ok_or(ApiError::MoltbookError("Agent name not found in profile".to_string(), "".to_string()))?;
+                 // Now follow by correctly cased name
+                 let result: serde_json::Value = client.post(&format!("/agents/{}/follow", resolved_name), &json!({})).await?;
                  if result["success"].as_bool().unwrap_or(false) {
-                    println!("{}", format!("✓ Now following {}", name).bright_green());
+                    println!("{}", format!("✓ Now following {}", resolved_name).bright_green());
+                 } else {
+                    let error = result["error"].as_str().unwrap_or("Unknown error");
+                    println!("{}", format!("✗ Failed to follow {}: {}", resolved_name, error).red());
                  }
              } else {
                  println!("{}", format!("✗ Molty '{}' not found", name).red());
              }
         },
-         Commands::Unfollow { name } => {
-             // First, get the agent ID
+        Commands::Unfollow { name } => {
+             // First, get the correctly cased name from profile
              let response: serde_json::Value = client.get(&format!("/agents/profile?name={}", name)).await?;
              if let Some(agent) = response.get("agent") {
-                 let id = agent["id"].as_str().ok_or(ApiError::MoltbookError("Agent ID not found".to_string(), "".to_string()))?;
-                 // Now unfollow by ID
-                 let result: serde_json::Value = client.delete(&format!("/agents/{}/follow", id)).await?;
+                 let resolved_name = agent["name"].as_str().ok_or(ApiError::MoltbookError("Agent name not found in profile".to_string(), "".to_string()))?;
+                 // Now unfollow by correctly cased name
+                 let result: serde_json::Value = client.delete(&format!("/agents/{}/follow", resolved_name)).await?;
                  if result["success"].as_bool().unwrap_or(false) {
-                    println!("{}", format!("✓ Unfollowed {}", name).bright_green());
+                    println!("{}", format!("✓ Unfollowed {}", resolved_name).bright_green());
+                 } else {
+                    let error = result["error"].as_str().unwrap_or("Unknown error");
+                    println!("{}", format!("✗ Failed to unfollow {}: {}", resolved_name, error).red());
                  }
              } else {
                  println!("{}", format!("✗ Molty '{}' not found", name).red());
