@@ -78,8 +78,7 @@ impl MoltbookClient {
             .to_string_lossy()
             .to_string();
 
-        let file_contents = std::fs::read(&file_path)
-            .map_err(|e| ApiError::IoError(e))?;
+        let file_contents = std::fs::read(&file_path).map_err(|e| ApiError::IoError(e))?;
 
         let part = reqwest::multipart::Part::bytes(file_contents).file_name(file_name);
         let form = reqwest::multipart::Form::new().part("file", part);

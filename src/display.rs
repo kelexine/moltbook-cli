@@ -167,11 +167,20 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
             println!("{:<15} {}", "Name:", name);
         }
         if let Some(handle) = &owner.x_handle {
-            let verified = if owner.x_verified.unwrap_or(false) { " (Verified)".blue() } else { "".normal() };
+            let verified = if owner.x_verified.unwrap_or(false) {
+                " (Verified)".blue()
+            } else {
+                "".normal()
+            };
             println!("{:<15} @{}{}", "X (Twitter):", handle.cyan(), verified);
         }
         if let (Some(foll), Some(follg)) = (owner.x_follower_count, owner.x_following_count) {
-             println!("{:<15} {} followers | {} following", "X Stats:", foll.to_string().dimmed(), follg.to_string().dimmed());
+            println!(
+                "{:<15} {} followers | {} following",
+                "X Stats:",
+                foll.to_string().dimmed(),
+                follg.to_string().dimmed()
+            );
         }
         if let Some(owner_id) = &agent.owner_id {
             println!("{:<15} {}", "Owner ID:", owner_id.dimmed());

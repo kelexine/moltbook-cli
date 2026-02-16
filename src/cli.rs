@@ -456,10 +456,7 @@ pub async fn register_command(
     Ok(())
 }
 
-pub async fn init(
-    api_key_opt: Option<String>,
-    name_opt: Option<String>,
-) -> Result<(), ApiError> {
+pub async fn init(api_key_opt: Option<String>, name_opt: Option<String>) -> Result<(), ApiError> {
     let (api_key, agent_name) = if let (Some(k), Some(n)) = (api_key_opt, name_opt) {
         // One-shot flow
         (k, n)
@@ -735,9 +732,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             }
         }
         Commands::DeletePost { post_id } => {
-            let result: serde_json::Value = client
-                .delete(&format!("/posts/{}", post_id))
-                .await?;
+            let result: serde_json::Value = client.delete(&format!("/posts/{}", post_id)).await?;
             if result["success"].as_bool().unwrap_or(false) {
                 println!("{}", "✓ Post deleted successfully! 🦞".bright_green());
             }
@@ -842,7 +837,10 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             });
             let result: serde_json::Value = client.post("/submolts", &body).await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", format!("✓ Submolt m/{} created successfully! 🦞", name).bright_green());
+                println!(
+                    "{}",
+                    format!("✓ Submolt m/{} created successfully! 🦞", name).bright_green()
+                );
             }
         }
         Commands::Subscribe { name } => {
@@ -885,9 +883,14 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         }
         Commands::SetupOwnerEmail { email } => {
             let body = json!({ "email": email });
-            let result: serde_json::Value = client.post("/agents/me/setup-owner-email", &body).await?;
+            let result: serde_json::Value =
+                client.post("/agents/me/setup-owner-email", &body).await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", "✓ Owner email set! Check your inbox to verify dashboard access.".bright_green());
+                println!(
+                    "{}",
+                    "✓ Owner email set! Check your inbox to verify dashboard access."
+                        .bright_green()
+                );
             }
         }
         Commands::Heartbeat => {
@@ -1147,30 +1150,51 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             }
         }
         Commands::PinPost { post_id } => {
-            let result: serde_json::Value = client.post(&format!("/posts/{}/pin", post_id), &json!({})).await?;
+            let result: serde_json::Value = client
+                .post(&format!("/posts/{}/pin", post_id), &json!({}))
+                .await?;
             if result["success"].as_bool().unwrap_or(false) {
                 println!("{}", "✓ Post pinned successfully! 📌".bright_green());
             }
         }
         Commands::UnpinPost { post_id } => {
-            let result: serde_json::Value = client.delete(&format!("/posts/{}/pin", post_id)).await?;
+            let result: serde_json::Value =
+                client.delete(&format!("/posts/{}/pin", post_id)).await?;
             if result["success"].as_bool().unwrap_or(false) {
                 println!("{}", "✓ Post unpinned".bright_green());
             }
         }
-        Commands::SubmoltSettings { name, description, banner_color, theme_color } => {
+        Commands::SubmoltSettings {
+            name,
+            description,
+            banner_color,
+            theme_color,
+        } => {
             let mut body = json!({});
-            if let Some(d) = description { body["description"] = json!(d); }
-            if let Some(bc) = banner_color { body["banner_color"] = json!(bc); }
-            if let Some(tc) = theme_color { body["theme_color"] = json!(tc); }
-            
-            let result: serde_json::Value = client.patch(&format!("/submolts/{}/settings", name), &body).await?;
+            if let Some(d) = description {
+                body["description"] = json!(d);
+            }
+            if let Some(bc) = banner_color {
+                body["banner_color"] = json!(bc);
+            }
+            if let Some(tc) = theme_color {
+                body["theme_color"] = json!(tc);
+            }
+
+            let result: serde_json::Value = client
+                .patch(&format!("/submolts/{}/settings", name), &body)
+                .await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", format!("✓ m/{} settings updated!", name).bright_green());
+                println!(
+                    "{}",
+                    format!("✓ m/{} settings updated!", name).bright_green()
+                );
             }
         }
         Commands::SubmoltMods { name } => {
-            let response: serde_json::Value = client.get(&format!("/submolts/{}/moderators", name)).await?;
+            let response: serde_json::Value = client
+                .get(&format!("/submolts/{}/moderators", name))
+                .await?;
             println!("\nModerators for m/{}", name.cyan());
             if let Some(mods) = response["moderators"].as_array() {
                 for m in mods {
@@ -1180,17 +1204,32 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 }
             }
         }
-        Commands::SubmoltModAdd { name, agent_name, role } => {
+        Commands::SubmoltModAdd {
+            name,
+            agent_name,
+            role,
+        } => {
             let body = json!({ "agent_name": agent_name, "role": role });
-            let result: serde_json::Value = client.post(&format!("/submolts/{}/moderators", name), &body).await?;
+            let result: serde_json::Value = client
+                .post(&format!("/submolts/{}/moderators", name), &body)
+                .await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", format!("✓ Added {} as a moderator to m/{}", agent_name, name).bright_green());
+                println!(
+                    "{}",
+                    format!("✓ Added {} as a moderator to m/{}", agent_name, name).bright_green()
+                );
             }
         }
         Commands::SubmoltModRemove { name, agent_name } => {
-            let result: serde_json::Value = client.delete(&format!("/submolts/{}/moderators/{}", name, agent_name)).await?;
+            let result: serde_json::Value = client
+                .delete(&format!("/submolts/{}/moderators/{}", name, agent_name))
+                .await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", format!("✓ Removed {} from moderators of m/{}", agent_name, name).bright_green());
+                println!(
+                    "{}",
+                    format!("✓ Removed {} from moderators of m/{}", agent_name, name)
+                        .bright_green()
+                );
             }
         }
     }
