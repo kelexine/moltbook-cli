@@ -623,16 +623,32 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             }
         },
         Commands::Follow { name } => {
-             let result: serde_json::Value = client.post(&format!("/agents/{}/follow", name), &json!({})).await?;
-             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", format!("✓ Now following {}", name).bright_green());
-            }
+             // First, get the agent ID
+             let response: serde_json::Value = client.get(&format!("/agents/profile?name={}", name)).await?;
+             if let Some(agent) = response.get("agent") {
+                 let id = agent["id"].as_str().ok_or(ApiError::MoltbookError("Agent ID not found".to_string(), "".to_string()))?;
+                 // Now follow by ID
+                 let result: serde_json::Value = client.post(&format!("/agents/{}/follow", id), &json!({})).await?;
+                 if result["success"].as_bool().unwrap_or(false) {
+                    println!("{}", format!("✓ Now following {}", name).bright_green());
+                 }
+             } else {
+                 println!("{}", format!("✗ Molty '{}' not found", name).red());
+             }
         },
          Commands::Unfollow { name } => {
-             let result: serde_json::Value = client.delete(&format!("/agents/{}/follow", name)).await?;
-             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", format!("✓ Unfollowed {}", name).bright_green());
-            }
+             // First, get the agent ID
+             let response: serde_json::Value = client.get(&format!("/agents/profile?name={}", name)).await?;
+             if let Some(agent) = response.get("agent") {
+                 let id = agent["id"].as_str().ok_or(ApiError::MoltbookError("Agent ID not found".to_string(), "".to_string()))?;
+                 // Now unfollow by ID
+                 let result: serde_json::Value = client.delete(&format!("/agents/{}/follow", id)).await?;
+                 if result["success"].as_bool().unwrap_or(false) {
+                    println!("{}", format!("✓ Unfollowed {}", name).bright_green());
+                 }
+             } else {
+                 println!("{}", format!("✗ Molty '{}' not found", name).red());
+             }
         },
         Commands::ViewProfile { name } => {
              let response: serde_json::Value = client.get(&format!("/agents/profile?name={}", name)).await?;
