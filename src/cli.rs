@@ -115,9 +115,12 @@ pub enum Commands {
         /// Post ID
         post_id: String,
         
-        /// Comment content
-        #[arg(short, long)]
+        /// Comment content (positional)
         content: Option<String>,
+        
+        /// Comment content (flagged)
+        #[arg(short, long = "content")]
+        content_flag: Option<String>,
         
         /// Parent comment ID (for replies)
         #[arg(short, long)]
@@ -519,8 +522,8 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                  }
             }
         },
-        Commands::Comment { post_id, content, parent } => {
-            let content = match content {
+        Commands::Comment { post_id, content, content_flag, parent } => {
+            let content = match content.or(content_flag) {
                 Some(c) => c,
                 None => Input::with_theme(&ColorfulTheme::default())
                     .with_prompt("Comment")
