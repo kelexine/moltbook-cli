@@ -39,10 +39,19 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
     println!("[{}] {}", index, 
         result.title.as_deref().unwrap_or("(comment)").bright_cyan().bold()
     );
-    println!("  {} | {} | Similarity: {:.0}%", 
+    let score = result.similarity.unwrap_or(0.0);
+    let score_label = if score > 1.0 { "Relevance" } else { "Similarity" };
+    let score_display = if score > 1.0 { 
+        format!("{:.1}", score) 
+    } else { 
+        format!("{:.0}%", score * 100.0) 
+    };
+
+    println!("  {} | {} | {}: {}", 
         result.author.name.yellow(),
         result.result_type.green(),
-        result.similarity * 100.0
+        score_label,
+        score_display
     );
     
     if let Some(content) = &result.content {

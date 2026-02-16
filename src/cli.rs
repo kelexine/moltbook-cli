@@ -627,7 +627,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
              let response: serde_json::Value = client.get(&format!("/agents/profile?name={}", name)).await?;
              if let Some(agent) = response.get("agent") {
                  let resolved_name = agent["name"].as_str().ok_or(ApiError::MoltbookError("Agent name not found in profile".to_string(), "".to_string()))?;
-                 // Now follow by correctly cased name
+
                  let result: serde_json::Value = client.post(&format!("/agents/{}/follow", resolved_name), &json!({})).await?;
                  if result["success"].as_bool().unwrap_or(false) {
                     println!("{}", format!("✓ Now following {}", resolved_name).bright_green());

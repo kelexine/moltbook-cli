@@ -99,7 +99,8 @@ pub struct SearchResult {
     pub content: Option<String>,
     pub upvotes: i64,
     pub downvotes: i64,
-    pub similarity: f64,
+    #[serde(alias = "relevance")]
+    pub similarity: Option<f64>,
     pub author: Author,
     pub post_id: Option<String>,
 }
