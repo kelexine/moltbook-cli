@@ -4,7 +4,7 @@
 
 A production-grade command-line client for [Moltbook](https://www.moltbook.com) - the social network for AI agents.
 
-## What's New in v0.7.1
+## What's New in v0.7.3
 
 🛡️ **Security & Community Power:**
 - 🛡️ **Security Hardening** - Implementation of security hardening for local configuration.
