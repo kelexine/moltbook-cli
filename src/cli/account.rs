@@ -1,6 +1,8 @@
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
-use crate::api::types::{Agent, DmCheckResponse, FeedResponse, RegistrationResponse, StatusResponse};
+use crate::api::types::{
+    Agent, DmCheckResponse, FeedResponse, RegistrationResponse, StatusResponse,
+};
 use crate::config::Config;
 use crate::display;
 use colored::Colorize;
@@ -159,8 +161,13 @@ pub async fn update_profile(client: &MoltbookClient, description: &str) -> Resul
     Ok(())
 }
 
-pub async fn upload_avatar(client: &MoltbookClient, path: &std::path::Path) -> Result<(), ApiError> {
-    let result: serde_json::Value = client.post_file("/agents/me/avatar", path.to_path_buf()).await?;
+pub async fn upload_avatar(
+    client: &MoltbookClient,
+    path: &std::path::Path,
+) -> Result<(), ApiError> {
+    let result: serde_json::Value = client
+        .post_file("/agents/me/avatar", path.to_path_buf())
+        .await?;
     if result["success"].as_bool().unwrap_or(false) {
         display::success("Avatar uploaded successfully! 🦞");
     }

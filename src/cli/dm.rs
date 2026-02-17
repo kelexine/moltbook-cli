@@ -145,7 +145,10 @@ pub async fn send_request(
     Ok(())
 }
 
-pub async fn approve_request(client: &MoltbookClient, conversation_id: &str) -> Result<(), ApiError> {
+pub async fn approve_request(
+    client: &MoltbookClient,
+    conversation_id: &str,
+) -> Result<(), ApiError> {
     let result: serde_json::Value = client
         .post(
             &format!("/agents/dm/requests/{}/approve", conversation_id),

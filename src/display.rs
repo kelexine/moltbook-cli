@@ -1,7 +1,7 @@
 use crate::api::types::{Agent, DmRequest, Post, SearchResult, Submolt};
-use colored::*;
-use terminal_size::{terminal_size, Width};
 use chrono::{DateTime, Utc};
+use colored::*;
+use terminal_size::{Width, terminal_size};
 
 fn get_term_width() -> usize {
     if let Ok(cols) = std::env::var("COLUMNS") {
@@ -56,75 +56,114 @@ pub fn warn(msg: &str) {
 
 pub fn display_post(post: &Post, index: Option<usize>) {
     let width = get_term_width();
-    let inner_width = width.saturating_sub(4); 
-    
-    println!("{}", format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed());
+    let inner_width = width.saturating_sub(4);
+
+    println!(
+        "{}",
+        format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
 
     let prefix = if let Some(i) = index {
         format!("#{:<2} ", i).bright_white().bold()
     } else {
         "".normal()
     };
-    
+
     let title_space = inner_width.saturating_sub(if index.is_some() { 4 } else { 0 });
-    
+
     let title = if post.title.chars().count() > title_space {
-        let t: String = post.title.chars().take(title_space.saturating_sub(3)).collect();
+        let t: String = post
+            .title
+            .chars()
+            .take(title_space.saturating_sub(3))
+            .collect();
         format!("{}...", t)
     } else {
         post.title.clone()
     };
-    
-    let padding = inner_width.saturating_sub(title.chars().count() + if index.is_some() { 4 } else { 0 });
-    println!("│ {}{} {:>p$} │", prefix, title.bright_cyan().bold(), "", p = padding);
 
-    println!("{}", format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed());
+    let padding =
+        inner_width.saturating_sub(title.chars().count() + if index.is_some() { 4 } else { 0 });
+    println!(
+        "│ {}{} {:>p$} │",
+        prefix,
+        title.bright_cyan().bold(),
+        "",
+        p = padding
+    );
+
+    println!(
+        "{}",
+        format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
 
     let karma = post.author.karma.unwrap_or(0);
     let author = post.author.name.yellow();
     let sub = post.submolt.name.green();
-    let stats = format!("⬆ {} ⬇ {} 💬 {} ✨ {}", post.upvotes, post.downvotes, post.comment_count.unwrap_or(0), karma);
-    
+    let stats = format!(
+        "⬆ {} ⬇ {} 💬 {} ✨ {}",
+        post.upvotes,
+        post.downvotes,
+        post.comment_count.unwrap_or(0),
+        karma
+    );
+
     let left_meta = format!("👤 {}  m/{} ", author, sub);
     let left_len = post.author.name.chars().count() + post.submolt.name.chars().count() + 8;
     let stats_len = stats.chars().count();
-    
+
     let meta_padding = inner_width.saturating_sub(left_len + stats_len);
-    
-    println!("│ {}{:>p$} │", left_meta, stats.dimmed(), p = meta_padding + stats_len); 
-    
-    println!("│ {:>w$} │", "", w=inner_width);
+
+    println!(
+        "│ {}{:>p$} │",
+        left_meta,
+        stats.dimmed(),
+        p = meta_padding + stats_len
+    );
+
+    println!("│ {:>w$} │", "", w = inner_width);
     if let Some(content) = &post.content {
         let is_listing = index.is_some();
         let max_lines = if is_listing { 3 } else { 1000 };
-        
+
         let wrapped_width = inner_width.saturating_sub(2);
         let wrapped = textwrap::fill(content, wrapped_width);
-        
+
         for (i, line) in wrapped.lines().enumerate() {
             if i >= max_lines {
-                println!("│  {: <w$} │", "...".dimmed(), w=wrapped_width);
+                println!("│  {: <w$} │", "...".dimmed(), w = wrapped_width);
                 break;
             }
-            println!("│  {:<w$}│", line, w=wrapped_width);
+            println!("│  {:<w$}│", line, w = wrapped_width);
         }
     }
-    
+
     if let Some(url) = &post.url {
-        println!("│ {:>w$} │", "", w=inner_width);
+        println!("│ {:>w$} │", "", w = inner_width);
         let url_width = inner_width.saturating_sub(3);
         let truncated_url = if url.chars().count() > url_width {
-             let t: String = url.chars().take(url_width.saturating_sub(3)).collect();
-             format!("{}...", t)
+            let t: String = url.chars().take(url_width.saturating_sub(3)).collect();
+            format!("{}...", t)
         } else {
             url.clone()
         };
-        println!("│  🔗 {:<w$} │", truncated_url.blue().underline(), w=inner_width.saturating_sub(4));
+        println!(
+            "│  🔗 {:<w$} │",
+            truncated_url.blue().underline(),
+            w = inner_width.saturating_sub(4)
+        );
     }
 
-    println!("{}", format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed());
-    
-    println!("   ID: {} • {}", post.id.dimmed(), relative_time(&post.created_at).dimmed());
+    println!(
+        "{}",
+        format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
+
+    println!(
+        "   ID: {} • {}",
+        post.id.dimmed(),
+        relative_time(&post.created_at).dimmed()
+    );
     println!();
 }
 
@@ -132,7 +171,10 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
     let width = get_term_width();
     let inner_width = width.saturating_sub(4);
 
-    println!("{}", format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed());
+    println!(
+        "{}",
+        format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
 
     let title = result.title.as_deref().unwrap_or("(comment)");
     let score = result.similarity.unwrap_or(0.0);
@@ -149,34 +191,53 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
     } else {
         title.to_string()
     };
-    
-    let padding = inner_width.saturating_sub(4 + title_display.chars().count() + score_display.chars().count());
-    println!("│ #{:<2} {}{:>p$} │", index, title_display.bright_cyan().bold(), score_display.green(), p = padding + score_display.chars().count());
 
-    println!("{}", format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed());
+    let padding = inner_width
+        .saturating_sub(4 + title_display.chars().count() + score_display.chars().count());
+    println!(
+        "│ #{:<2} {}{:>p$} │",
+        index,
+        title_display.bright_cyan().bold(),
+        score_display.green(),
+        p = padding + score_display.chars().count()
+    );
+
+    println!(
+        "{}",
+        format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
 
     let author = result.author.name.yellow();
     let type_label = result.result_type.blue();
-    
+
     let left_len = result.author.name.chars().count() + result.result_type.chars().count() + 8;
     let meta_padding = inner_width.saturating_sub(left_len);
 
-    println!("│ 👤 {}  •  {}{:>p$} │", author, type_label, "", p = meta_padding);
+    println!(
+        "│ 👤 {}  •  {}{:>p$} │",
+        author,
+        type_label,
+        "",
+        p = meta_padding
+    );
 
-    println!("│ {:>w$} │", "", w=inner_width);
+    println!("│ {:>w$} │", "", w = inner_width);
     if let Some(content) = &result.content {
         let wrapped_width = inner_width.saturating_sub(2);
         let wrapped = textwrap::fill(content, wrapped_width);
         for (i, line) in wrapped.lines().enumerate() {
             if i >= 3 {
-                 println!("│  {: <w$} │", "...".dimmed(), w=wrapped_width);
-                 break;
+                println!("│  {: <w$} │", "...".dimmed(), w = wrapped_width);
+                break;
             }
-            println!("│  {:<w$}│", line, w=wrapped_width);
+            println!("│  {:<w$}│", line, w = wrapped_width);
         }
     }
 
-        println!("{}", format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed());
+    println!(
+        "{}",
+        format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
     if let Some(post_id) = &result.post_id {
         println!("   Post ID: {}", post_id.dimmed());
     }
@@ -185,14 +246,14 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
 
 pub fn display_profile(agent: &Agent, title: Option<&str>) {
     let width = get_term_width();
-    
+
     let title_str = title.unwrap_or("Profile");
     println!("\n{} {}", "👤".cyan(), title_str.bright_green().bold());
     println!("{}", "━".repeat(width).dimmed());
-    
+
     println!("  {:<15} {}", "Name:", agent.name.bright_white().bold());
     println!("  {:<15} {}", "ID:", agent.id.dimmed());
-    
+
     if let Some(desc) = &agent.description {
         println!("{}", "─".repeat(width).dimmed());
         let wrapped = textwrap::fill(desc, width.saturating_sub(4));
@@ -241,15 +302,27 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
         };
         println!("  {:<15} {}", "🛡️  Status:", status);
         if let Some(claimed_at) = &agent.claimed_at {
-            println!("  {:<15} {}", "📅 Claimed:", relative_time(claimed_at).dimmed());
+            println!(
+                "  {:<15} {}",
+                "📅 Claimed:",
+                relative_time(claimed_at).dimmed()
+            );
         }
     }
 
     if let Some(created_at) = &agent.created_at {
-        println!("  {:<15} {}", "🌱 Joined:", relative_time(created_at).dimmed());
+        println!(
+            "  {:<15} {}",
+            "🌱 Joined:",
+            relative_time(created_at).dimmed()
+        );
     }
     if let Some(last_active) = &agent.last_active {
-        println!("  {:<15} {}", "⏰ Active:", relative_time(last_active).dimmed());
+        println!(
+            "  {:<15} {}",
+            "⏰ Active:",
+            relative_time(last_active).dimmed()
+        );
     }
 
     if let Some(owner) = &agent.owner {
@@ -298,11 +371,16 @@ pub fn display_comment(comment: &serde_json::Value, index: usize) {
     let content = comment["content"].as_str().unwrap_or("");
     let upvotes = comment["upvotes"].as_i64().unwrap_or(0);
     let id = comment["id"].as_str().unwrap_or("unknown");
-    
+
     let width = get_term_width();
 
-    println!("{} {} (⬆ {})", format!("#{:<2}", index).dimmed(), author.yellow().bold(), upvotes);
-    
+    println!(
+        "{} {} (⬆ {})",
+        format!("#{:<2}", index).dimmed(),
+        author.yellow().bold(),
+        upvotes
+    );
+
     let wrapped = textwrap::fill(content, width.saturating_sub(4));
     for line in wrapped.lines() {
         println!("│ {}", line);
@@ -339,31 +417,64 @@ pub fn display_dm_request(req: &DmRequest) {
         .or(req.message_preview.as_deref())
         .unwrap_or("");
 
-    println!("{}", format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed());
-    
+    println!(
+        "{}",
+        format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
+
     // Calculate padding for the 'from' line
     let from_line_len = 15 + from.chars().count();
     let padding = inner_width.saturating_sub(from_line_len);
-    
-    println!("│ 📨 Request from {} {:>p$} │", from.cyan().bold(), "", p = padding);
-    println!("{}", format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed());
-    
+
+    println!(
+        "│ 📨 Request from {} {:>p$} │",
+        from.cyan().bold(),
+        "",
+        p = padding
+    );
+    println!(
+        "{}",
+        format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
+
     if let Some(owner) = &req.from.owner {
         if let Some(handle) = &owner.x_handle {
-             println!("│ 👑 Owner: @{:<w$} │", handle.blue(), w=inner_width.saturating_sub(11));
+            println!(
+                "│ 👑 Owner: @{:<w$} │",
+                handle.blue(),
+                w = inner_width.saturating_sub(11)
+            );
         }
     }
-    
+
     let wrapped = textwrap::fill(msg, inner_width.saturating_sub(2));
     for line in wrapped.lines() {
-        println!("│  {:<w$}│", line, w=inner_width.saturating_sub(2));
+        println!("│  {:<w$}│", line, w = inner_width.saturating_sub(2));
     }
-    
-    println!("{}", format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed());
-    println!("│ ID: {:<w$} │", req.conversation_id.dimmed(), w=inner_width.saturating_sub(4));
-    println!("│ {:<w$} │", format!("✔ Approve: moltbook dm-approve {}", req.conversation_id).green(), w=inner_width.saturating_sub(2) + 9); // +9 roughly for ansi
-    println!("│ {:<w$} │", format!("✘ Reject:  moltbook dm-reject {}", req.conversation_id).red(), w=inner_width.saturating_sub(2) + 9);
-    println!("{}", format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed());
+
+    println!(
+        "{}",
+        format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
+    println!(
+        "│ ID: {:<w$} │",
+        req.conversation_id.dimmed(),
+        w = inner_width.saturating_sub(4)
+    );
+    println!(
+        "│ {:<w$} │",
+        format!("✔ Approve: moltbook dm-approve {}", req.conversation_id).green(),
+        w = inner_width.saturating_sub(2) + 9
+    ); // +9 roughly for ansi
+    println!(
+        "│ {:<w$} │",
+        format!("✘ Reject:  moltbook dm-reject {}", req.conversation_id).red(),
+        w = inner_width.saturating_sub(2) + 9
+    );
+    println!(
+        "{}",
+        format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed()
+    );
     println!();
 }
 
@@ -377,10 +488,18 @@ pub fn display_status(status: &crate::api::types::StatusResponse) {
     println!("{}", "━".repeat(width).dimmed());
 
     if let Some(agent) = &status.agent {
-        println!("  {:<15} {}", "Agent Name:", agent.name.bright_white().bold());
+        println!(
+            "  {:<15} {}",
+            "Agent Name:",
+            agent.name.bright_white().bold()
+        );
         println!("  {:<15} {}", "Agent ID:", agent.id.dimmed());
         if let Some(claimed_at) = &agent.claimed_at {
-            println!("  {:<15} {}", "Claimed At:", relative_time(claimed_at).dimmed());
+            println!(
+                "  {:<15} {}",
+                "Claimed At:",
+                relative_time(claimed_at).dimmed()
+            );
         }
         println!("{}", "─".repeat(width).dimmed());
     }
@@ -453,9 +572,17 @@ pub fn display_conversation(conv: &crate::api::types::Conversation) {
         String::new()
     };
 
-    println!("{} {}{}", "💬".cyan(), conv.with_agent.name.bright_cyan().bold(), unread_msg);
+    println!(
+        "{} {}{}",
+        "💬".cyan(),
+        conv.with_agent.name.bright_cyan().bold(),
+        unread_msg
+    );
     println!("   ID: {}", conv.conversation_id.dimmed());
-    println!("   Read: {}", format!("moltbook dm-read {}", conv.conversation_id).green());
+    println!(
+        "   Read: {}",
+        format!("moltbook dm-read {}", conv.conversation_id).green()
+    );
     println!("{}", "─".repeat(width).dimmed());
 }
 
@@ -466,7 +593,7 @@ pub fn display_message(msg: &crate::api::types::Message) {
     } else {
         &msg.from_agent.name
     };
-    
+
     let (icon, color) = if msg.from_you {
         ("📤", prefix.green())
     } else {
@@ -476,7 +603,7 @@ pub fn display_message(msg: &crate::api::types::Message) {
     let time = relative_time(&msg.created_at);
 
     println!("\n{} {} ({})", icon, color.bold(), time.dimmed());
-    
+
     let wrapped = textwrap::fill(&msg.message, width.saturating_sub(4));
     for line in wrapped.lines() {
         println!("  {}", line);

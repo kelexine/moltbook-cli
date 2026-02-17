@@ -5,7 +5,11 @@ use crate::display;
 use colored::Colorize;
 use serde_json::json;
 
-pub async fn list_submolts(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
+pub async fn list_submolts(
+    client: &MoltbookClient,
+    sort: &str,
+    limit: u64,
+) -> Result<(), ApiError> {
     let response: serde_json::Value = client
         .get(&format!("/submolts?sort={}&limit={}", sort, limit))
         .await?;
@@ -14,7 +18,11 @@ pub async fn list_submolts(client: &MoltbookClient, sort: &str, limit: u64) -> R
     } else {
         serde_json::from_value(response)?
     };
-    println!("\n{} ({})", "Available Submolts".bright_green().bold(), sort);
+    println!(
+        "\n{} ({})",
+        "Available Submolts".bright_green().bold(),
+        sort
+    );
     println!("{}", "=".repeat(60));
     for s in submolts {
         display::display_submolt(&s);
@@ -157,7 +165,10 @@ pub async fn add_moderator(
         .post(&format!("/submolts/{}/moderators", name), &body)
         .await?;
     if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!("Added {} as a moderator to m/{}", agent_name, name));
+        display::success(&format!(
+            "Added {} as a moderator to m/{}",
+            agent_name, name
+        ));
     }
     Ok(())
 }
@@ -171,7 +182,10 @@ pub async fn remove_moderator(
         .delete(&format!("/submolts/{}/moderators/{}", name, agent_name))
         .await?;
     if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!("Removed {} from moderators of m/{}", agent_name, name));
+        display::success(&format!(
+            "Removed {} from moderators of m/{}",
+            agent_name, name
+        ));
     }
     Ok(())
 }

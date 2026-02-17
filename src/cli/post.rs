@@ -15,10 +15,7 @@ pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(),
     if response.posts.is_empty() {
         display::info("No posts in your feed yet.");
         println!("Try:");
-        println!(
-            "  - {} to see what's happening",
-            "moltbook global".cyan()
-        );
+        println!("  - {} to see what's happening", "moltbook global".cyan());
         println!("  - {} to find communities", "moltbook submolts".cyan());
         println!(
             "  - {} to explore topics",
@@ -106,9 +103,17 @@ pub async fn create_post(
         let mut f_url = url.or(url_pos);
 
         if f_url.is_none() {
-            if f_title.as_ref().map(|s| s.starts_with("http")).unwrap_or(false) {
+            if f_title
+                .as_ref()
+                .map(|s| s.starts_with("http"))
+                .unwrap_or(false)
+            {
                 f_url = f_title.take();
-            } else if f_content.as_ref().map(|s| s.starts_with("http")).unwrap_or(false) {
+            } else if f_content
+                .as_ref()
+                .map(|s| s.starts_with("http"))
+                .unwrap_or(false)
+            {
                 f_url = f_content.take();
             }
         }
@@ -242,9 +247,7 @@ pub async fn comments(client: &MoltbookClient, post_id: &str, sort: &str) -> Res
     let comments = response["comments"]
         .as_array()
         .or(response.as_array())
-        .ok_or_else(|| {
-            ApiError::MoltbookError("Unexpected response format".into(), "".into())
-        })?;
+        .ok_or_else(|| ApiError::MoltbookError("Unexpected response format".into(), "".into()))?;
 
     println!("\n{}", "Comments".bright_green().bold());
     println!("{}", "=".repeat(60));

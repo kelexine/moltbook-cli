@@ -421,7 +421,9 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         Commands::Status => account::status(client).await,
         Commands::Heartbeat => account::heartbeat(client).await,
         Commands::ViewProfile { name } => account::view_agent_profile(client, &name).await,
-        Commands::UpdateProfile { description } => account::update_profile(client, &description).await,
+        Commands::UpdateProfile { description } => {
+            account::update_profile(client, &description).await
+        }
         Commands::UploadAvatar { path } => account::upload_avatar(client, &path).await,
         Commands::RemoveAvatar => account::remove_avatar(client).await,
         Commands::Follow { name } => account::follow(client, &name).await,
@@ -441,37 +443,90 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             submolt_pos,
             content_pos,
             url_pos,
-        } => post::create_post(client, title, content, url, submolt, title_pos, submolt_pos, content_pos, url_pos).await,
+        } => {
+            post::create_post(
+                client,
+                title,
+                content,
+                url,
+                submolt,
+                title_pos,
+                submolt_pos,
+                content_pos,
+                url_pos,
+            )
+            .await
+        }
         Commands::ViewPost { post_id } => post::view_post(client, &post_id).await,
         Commands::DeletePost { post_id } => post::delete_post(client, &post_id).await,
         Commands::Upvote { post_id } => post::upvote_post(client, &post_id).await,
         Commands::Downvote { post_id } => post::downvote_post(client, &post_id).await,
-        Commands::Search { query, type_filter, limit } => post::search(client, &query, &type_filter, limit).await,
+        Commands::Search {
+            query,
+            type_filter,
+            limit,
+        } => post::search(client, &query, &type_filter, limit).await,
         Commands::Comments { post_id, sort } => post::comments(client, &post_id, &sort).await,
-        Commands::Comment { post_id, content, content_flag, parent } => post::create_comment(client, &post_id, content, content_flag, parent).await,
+        Commands::Comment {
+            post_id,
+            content,
+            content_flag,
+            parent,
+        } => post::create_comment(client, &post_id, content, content_flag, parent).await,
         Commands::UpvoteComment { comment_id } => post::upvote_comment(client, &comment_id).await,
 
         // Submolt Commands
         Commands::Submolts { sort, limit } => submolt::list_submolts(client, &sort, limit).await,
-        Commands::Submolt { name, sort, limit } => submolt::view_submolt(client, &name, &sort, limit).await,
-        Commands::CreateSubmolt { name, display_name, description, allow_crypto } => submolt::create_submolt(client, &name, &display_name, description, allow_crypto).await,
+        Commands::Submolt { name, sort, limit } => {
+            submolt::view_submolt(client, &name, &sort, limit).await
+        }
+        Commands::CreateSubmolt {
+            name,
+            display_name,
+            description,
+            allow_crypto,
+        } => submolt::create_submolt(client, &name, &display_name, description, allow_crypto).await,
         Commands::Subscribe { name } => submolt::subscribe(client, &name).await,
         Commands::Unsubscribe { name } => submolt::unsubscribe(client, &name).await,
         Commands::PinPost { post_id } => submolt::pin_post(client, &post_id).await,
         Commands::UnpinPost { post_id } => submolt::unpin_post(client, &post_id).await,
-        Commands::SubmoltSettings { name, description, banner_color, theme_color } => submolt::update_settings(client, &name, description, banner_color, theme_color).await,
+        Commands::SubmoltSettings {
+            name,
+            description,
+            banner_color,
+            theme_color,
+        } => submolt::update_settings(client, &name, description, banner_color, theme_color).await,
         Commands::SubmoltMods { name } => submolt::list_moderators(client, &name).await,
-        Commands::SubmoltModAdd { name, agent_name, role } => submolt::add_moderator(client, &name, &agent_name, &role).await,
-        Commands::SubmoltModRemove { name, agent_name } => submolt::remove_moderator(client, &name, &agent_name).await,
+        Commands::SubmoltModAdd {
+            name,
+            agent_name,
+            role,
+        } => submolt::add_moderator(client, &name, &agent_name, &role).await,
+        Commands::SubmoltModRemove { name, agent_name } => {
+            submolt::remove_moderator(client, &name, &agent_name).await
+        }
 
         // DM Commands
         Commands::DmCheck => dm::check_dms(client).await,
         Commands::DmRequests => dm::list_dm_requests(client).await,
         Commands::DmList => dm::list_conversations(client).await,
         Commands::DmRead { conversation_id } => dm::read_dm(client, &conversation_id).await,
-        Commands::DmSend { conversation_id, message, needs_human } => dm::send_dm(client, &conversation_id, message, needs_human).await,
-        Commands::DmRequest { to, message, by_owner } => dm::send_request(client, to, message, by_owner).await,
-        Commands::DmApprove { conversation_id } => dm::approve_request(client, &conversation_id).await,
-        Commands::DmReject { conversation_id, block } => dm::reject_request(client, &conversation_id, block).await,
+        Commands::DmSend {
+            conversation_id,
+            message,
+            needs_human,
+        } => dm::send_dm(client, &conversation_id, message, needs_human).await,
+        Commands::DmRequest {
+            to,
+            message,
+            by_owner,
+        } => dm::send_request(client, to, message, by_owner).await,
+        Commands::DmApprove { conversation_id } => {
+            dm::approve_request(client, &conversation_id).await
+        }
+        Commands::DmReject {
+            conversation_id,
+            block,
+        } => dm::reject_request(client, &conversation_id, block).await,
     }
 }
