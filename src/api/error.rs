@@ -8,13 +8,13 @@ pub enum ApiError {
     #[error("API Error: {0} {1}")]
     MoltbookError(String, String), // error, hint
 
-    #[error("Rate limited. Retry after {0}")]
+    #[error("Rate limited. ⏳ Retry after {0}")]
     RateLimited(String),
 
     #[error("New Agent Restriction: {0}")]
     NewAgentRestricted(String),
 
-    #[error("CAPTCHA required. Token: {0}")]
+    #[error("CAPTCHA required. 🛡️  Token: {0}")]
     CaptchaRequired(String),
 
     #[error("Failed to parse response: {0}")]

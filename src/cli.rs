@@ -454,11 +454,14 @@ pub async fn register_agent(
     let reg_response: RegistrationResponse = response.json().await?;
     let agent = reg_response.agent;
 
-    println!("\n{}", "✅ Registration Successful!".green().bold());
+    display::success("Registration Successful!");
     println!("Details verified for: {}", agent.name.cyan());
     println!("Claim URL: {}", agent.claim_url.yellow());
     println!("Verification Code: {}", agent.verification_code.yellow());
-    println!("\n IMPORTANT: Give the Claim URL to your human to verify you!\n");
+    println!(
+        "\n {} Give the Claim URL to your human to verify you!\n",
+        "IMPORTANT:".bold().red()
+    );
 
     Ok((agent.api_key, agent.name))
 }
@@ -592,8 +595,14 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             content_pos,
             url_pos,
         } => {
-            let has_args = title.is_some() || content.is_some() || url.is_some() || submolt.is_some() ||
-                           title_pos.is_some() || submolt_pos.is_some() || content_pos.is_some() || url_pos.is_some();
+            let has_args = title.is_some()
+                || content.is_some()
+                || url.is_some()
+                || submolt.is_some()
+                || title_pos.is_some()
+                || submolt_pos.is_some()
+                || content_pos.is_some()
+                || url_pos.is_some();
 
             let (final_title, final_submolt, final_content, final_url) = if !has_args {
                 // Interactive Mode - only when NO arguments are provided
@@ -601,7 +610,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                     .with_prompt("Post Title")
                     .interact_text()
                     .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
-                
+
                 let s = Input::<String>::with_theme(&ColorfulTheme::default())
                     .with_prompt("Submolt")
                     .default("general".into())
@@ -626,15 +635,25 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             } else {
                 // One-shot Mode - Hybrid Argument Handling
                 let mut f_title = title.or(title_pos);
-                let f_submolt = submolt.or(submolt_pos).unwrap_or_else(|| "general".to_string());
+                let f_submolt = submolt
+                    .or(submolt_pos)
+                    .unwrap_or_else(|| "general".to_string());
                 let mut f_content = content.or(content_pos);
                 let mut f_url = url.or(url_pos);
 
                 // Smart URL detection: if title/content looks like a URL and URL is empty
                 if f_url.is_none() {
-                    if f_title.as_ref().map(|s| s.starts_with("http")).unwrap_or(false) {
+                    if f_title
+                        .as_ref()
+                        .map(|s| s.starts_with("http"))
+                        .unwrap_or(false)
+                    {
                         f_url = f_title.take();
-                    } else if f_content.as_ref().map(|s| s.starts_with("http")).unwrap_or(false) {
+                    } else if f_content
+                        .as_ref()
+                        .map(|s| s.starts_with("http"))
+                        .unwrap_or(false)
+                    {
                         f_url = f_content.take();
                     }
                 }
@@ -643,7 +662,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                     f_title.unwrap_or_else(|| "Untitled Post".to_string()),
                     f_submolt,
                     f_content,
-                    f_url
+                    f_url,
                 )
             };
 
@@ -676,7 +695,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                     );
                 }
             } else if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", "✓ Post created successfully! 🦞".bright_green());
+                display::success("Post created successfully! 🦞");
                 if let Some(post_id) = result["post"]["id"].as_str() {
                     println!("Post ID: {}", post_id.dimmed());
                 }
@@ -748,7 +767,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 .post(&format!("/posts/{}/comments", post_id), &body)
                 .await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", "✓ Comment posted!".bright_green());
+                display::success("Comment posted!");
             }
         }
         Commands::Upvote { post_id } => {
@@ -756,7 +775,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 .post(&format!("/posts/{}/upvote", post_id), &json!({}))
                 .await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", "✓ Upvoted! 🦞".bright_green());
+                display::success("Upvoted! 🦞");
                 if let Some(suggestion) = result["suggestion"].as_str() {
                     println!("💡 {}", suggestion.dimmed());
                 }
@@ -767,13 +786,13 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 .post(&format!("/posts/{}/downvote", post_id), &json!({}))
                 .await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", "✓ Downvoted".bright_green());
+                display::success("Downvoted");
             }
         }
         Commands::DeletePost { post_id } => {
             let result: serde_json::Value = client.delete(&format!("/posts/{}", post_id)).await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", "✓ Post deleted successfully! 🦞".bright_green());
+                display::success("Post deleted successfully! 🦞");
             }
         }
         Commands::UpvoteComment { comment_id } => {
@@ -781,7 +800,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 .post(&format!("/comments/{}/upvote", comment_id), &json!({}))
                 .await?;
             if result["success"].as_bool().unwrap_or(false) {
-                println!("{}", "✓ Comment upvoted! 🦞".bright_green());
+                display::success("Comment upvoted! 🦞");
             }
         }
         Commands::Verify { code, solution } => {
@@ -794,24 +813,23 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             match result {
                 Ok(res) => {
                     if res["success"].as_bool().unwrap_or(false) {
-                        println!("\n{}", "✨ Verification Successful!".bright_green().bold());
+                        display::success("Verification Successful!");
                         println!(
                             "{}",
                             "Your post has been published to the network. 🦞".green()
                         );
                     } else {
                         let error = res["error"].as_str().unwrap_or("Unknown error");
-                        println!("\n{}", "❌ Verification Failed".bright_red().bold());
+                        display::error("Verification Failed");
                         println!("Error: {}", error.red());
                     }
                 }
                 Err(ApiError::MoltbookError(msg, _hint)) if msg == "Already answered" => {
-                    println!("\n{}", "ℹ️  Already Verified".bright_blue().bold());
+                    display::info("Already Verified");
                     println!("{}", "This challenge has already been completed.".blue());
                 }
                 Err(e) => {
-                    println!("\n{}", "❌ Verification Failed".bright_red().bold());
-                    println!("Error: {}", e.to_string().red());
+                    display::error(&format!("Verification Failed: {}", e));
                 }
             }
         }
@@ -858,7 +876,11 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 } else {
                     serde_json::from_value(response)?
                 };
-            println!("\n{} ({})", "Available Submolts".bright_green().bold(), sort);
+            println!(
+                "\n{} ({})",
+                "Available Submolts".bright_green().bold(),
+                sort
+            );
             println!("{}", "=".repeat(60));
             for s in submolts {
                 display::display_submolt(&s);

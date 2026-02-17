@@ -1,6 +1,22 @@
 use crate::api::types::{Agent, DmRequest, Post, SearchResult, Submolt};
 use colored::*;
 
+pub fn success(msg: &str) {
+    println!("{} {}", "✅".green(), msg.bright_green());
+}
+
+pub fn error(msg: &str) {
+    eprintln!("{} {}", "❌".red().bold(), msg.bright_red());
+}
+
+pub fn info(msg: &str) {
+    println!("{} {}", "ℹ️ ".cyan(), msg.bright_cyan());
+}
+
+pub fn warn(msg: &str) {
+    println!("{} {}", "⚠️ ".yellow(), msg.bright_yellow());
+}
+
 pub fn display_post(post: &Post, index: Option<usize>) {
     let prefix = if let Some(i) = index {
         format!("[{}] ", i)
