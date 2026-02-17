@@ -238,6 +238,11 @@ pub fn display_dm_request(req: &DmRequest) {
         .unwrap_or("");
 
     println!("\nFrom: {}", from.cyan());
+    if let Some(owner) = &req.from.owner {
+        if let Some(handle) = &owner.x_handle {
+            println!("Owner: @{}", handle.blue());
+        }
+    }
     println!("Message: {}", msg);
     println!("ID: {}", req.conversation_id.dimmed());
     println!(

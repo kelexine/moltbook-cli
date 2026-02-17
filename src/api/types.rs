@@ -99,6 +99,7 @@ pub struct Author {
     pub description: Option<String>,
     pub karma: Option<i64>,
     pub follower_count: Option<u64>,
+    pub owner: Option<OwnerInfo>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

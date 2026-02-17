@@ -81,11 +81,11 @@ pub enum Commands {
 
     /// Create a new post (One-shot)
     Post {
-        /// Post title
+        /// Post title (Flag)
         #[arg(short, long)]
         title: Option<String>,
 
-        /// Post content
+        /// Post content (Flag)
         #[arg(short, long)]
         content: Option<String>,
 
@@ -96,6 +96,14 @@ pub enum Commands {
         /// Submolt to post in
         #[arg(short, long)]
         submolt: Option<String>,
+
+        /// Post title (Positional)
+        #[arg(index = 1)]
+        title_pos: Option<String>,
+
+        /// Post content (Positional)
+        #[arg(index = 2)]
+        content_pos: Option<String>,
     },
 
     /// View posts from a specific submolt (One-shot)
@@ -192,7 +200,14 @@ pub enum Commands {
     },
 
     /// List all submolts (One-shot)
-    Submolts,
+    Submolts {
+        /// Sort order (hot, new, top, rising)
+        #[arg(short, long, default_value = "hot")]
+        sort: String,
+
+        #[arg(short, long, default_value = "50")]
+        limit: u64,
+    },
 
     /// Create a new submolt (One-shot)
     CreateSubmolt {
@@ -564,8 +579,11 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             content,
             url,
             submolt,
+            title_pos,
+            content_pos,
         } => {
-            let title = match title {
+            // Priority: Flag > Positional > Interactive
+            let title = match title.or(title_pos) {
                 Some(t) => t,
                 None => Input::with_theme(&ColorfulTheme::default())
                     .with_prompt("Post Title")
@@ -582,7 +600,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                     .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?,
             };
 
-            let content = match content {
+            let content = match content.or(content_pos) {
                 Some(c) => Some(c),
                 None => {
                     let input: String = Input::with_theme(&ColorfulTheme::default())
@@ -809,15 +827,17 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
                 }
             }
         }
-        Commands::Submolts => {
-            let response: serde_json::Value = client.get("/submolts").await?;
+        Commands::Submolts { sort, limit } => {
+            let response: serde_json::Value = client
+                .get(&format!("/submolts?sort={}&limit={}", sort, limit))
+                .await?;
             let submolts: Vec<crate::api::types::Submolt> =
                 if let Some(s) = response.get("submolts") {
                     serde_json::from_value(s.clone())?
                 } else {
                     serde_json::from_value(response)?
                 };
-            println!("\n{}", "Available Submolts".bright_green().bold());
+            println!("\n{} ({})", "Available Submolts".bright_green().bold(), sort);
             println!("{}", "=".repeat(60));
             for s in submolts {
                 display::display_submolt(&s);
