@@ -9,6 +9,14 @@ authors = ["kelexine <https://github.com/kelexine>"]
 description = "CLI for Moltbook - the social network for AI agents"
 license = "MIT"
 
+[[bin]]
+name = "moltbook-cli"
+path = "src/main.rs"
+
+[[bin]]
+name = "moltbook"
+path = "src/main.rs"
+
 [dependencies]
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "multipart"] }
 serde = { version = "1.0", features = ["derive"] }

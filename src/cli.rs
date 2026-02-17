@@ -101,9 +101,17 @@ pub enum Commands {
         #[arg(index = 1)]
         title_pos: Option<String>,
 
-        /// Post content (Positional)
+        /// Submolt (Positional)
         #[arg(index = 2)]
+        submolt_pos: Option<String>,
+
+        /// Post content (Positional)
+        #[arg(index = 3)]
         content_pos: Option<String>,
+
+        /// URL (Positional)
+        #[arg(index = 4)]
+        url_pos: Option<String>,
     },
 
     /// View posts from a specific submolt (One-shot)
@@ -580,60 +588,73 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             url,
             submolt,
             title_pos,
+            submolt_pos,
             content_pos,
+            url_pos,
         } => {
-            // Priority: Flag > Positional > Interactive
-            let title = match title.or(title_pos) {
-                Some(t) => t,
-                None => Input::with_theme(&ColorfulTheme::default())
+            let has_args = title.is_some() || content.is_some() || url.is_some() || submolt.is_some() ||
+                           title_pos.is_some() || submolt_pos.is_some() || content_pos.is_some() || url_pos.is_some();
+
+            let (final_title, final_submolt, final_content, final_url) = if !has_args {
+                // Interactive Mode - only when NO arguments are provided
+                let t = Input::<String>::with_theme(&ColorfulTheme::default())
                     .with_prompt("Post Title")
                     .interact_text()
-                    .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?,
-            };
-
-            let submolt = match submolt {
-                Some(s) => s,
-                None => Input::with_theme(&ColorfulTheme::default())
+                    .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
+                
+                let s = Input::<String>::with_theme(&ColorfulTheme::default())
                     .with_prompt("Submolt")
                     .default("general".into())
                     .interact_text()
-                    .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?,
-            };
+                    .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
 
-            let content = match content.or(content_pos) {
-                Some(c) => Some(c),
-                None => {
-                    let input: String = Input::with_theme(&ColorfulTheme::default())
-                        .with_prompt("Content (optional)")
-                        .allow_empty(true)
-                        .interact_text()
-                        .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
-                    if input.is_empty() { None } else { Some(input) }
-                }
-            };
+                let c_in: String = Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Content (optional)")
+                    .allow_empty(true)
+                    .interact_text()
+                    .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
+                let c = if c_in.is_empty() { None } else { Some(c_in) };
 
-            let url = match url {
-                Some(u) => Some(u),
-                None => {
-                    // Only ask for URL if content is empty, or just ask optionally?
-                    // Let's ask optionally
-                    let input: String = Input::with_theme(&ColorfulTheme::default())
-                        .with_prompt("URL (optional)")
-                        .allow_empty(true)
-                        .interact_text()
-                        .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
-                    if input.is_empty() { None } else { Some(input) }
+                let u_in: String = Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("URL (optional)")
+                    .allow_empty(true)
+                    .interact_text()
+                    .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?;
+                let u = if u_in.is_empty() { None } else { Some(u_in) };
+
+                (t, s, c, u)
+            } else {
+                // One-shot Mode - Hybrid Argument Handling
+                let mut f_title = title.or(title_pos);
+                let f_submolt = submolt.or(submolt_pos).unwrap_or_else(|| "general".to_string());
+                let mut f_content = content.or(content_pos);
+                let mut f_url = url.or(url_pos);
+
+                // Smart URL detection: if title/content looks like a URL and URL is empty
+                if f_url.is_none() {
+                    if f_title.as_ref().map(|s| s.starts_with("http")).unwrap_or(false) {
+                        f_url = f_title.take();
+                    } else if f_content.as_ref().map(|s| s.starts_with("http")).unwrap_or(false) {
+                        f_url = f_content.take();
+                    }
                 }
+
+                (
+                    f_title.unwrap_or_else(|| "Untitled Post".to_string()),
+                    f_submolt,
+                    f_content,
+                    f_url
+                )
             };
 
             let mut body = json!({
-                "submolt": submolt,
-                "title": title,
+                "submolt": final_submolt,
+                "title": final_title,
             });
-            if let Some(c) = content {
+            if let Some(c) = final_content {
                 body["content"] = json!(c);
             }
-            if let Some(u) = url {
+            if let Some(u) = final_url {
                 body["url"] = json!(u);
             }
 
