@@ -1,6 +1,7 @@
 use crate::api::types::{Agent, DmRequest, Post, SearchResult, Submolt};
 use colored::*;
 use terminal_size::{terminal_size, Width};
+use chrono::{DateTime, Utc};
 
 fn get_term_width() -> usize {
     if let Ok(cols) = std::env::var("COLUMNS") {
@@ -13,6 +14,27 @@ fn get_term_width() -> usize {
         (w as usize).saturating_sub(2).max(40)
     } else {
         80
+    }
+}
+
+fn relative_time(timestamp: &str) -> String {
+    if let Ok(dt) = DateTime::parse_from_rfc3339(timestamp) {
+        let now = Utc::now();
+        let diff = now.signed_duration_since(dt);
+
+        if diff.num_seconds() < 60 {
+            "just now".to_string()
+        } else if diff.num_minutes() < 60 {
+            format!("{}m ago", diff.num_minutes())
+        } else if diff.num_hours() < 24 {
+            format!("{}h ago", diff.num_hours())
+        } else if diff.num_days() < 7 {
+            format!("{}d ago", diff.num_days())
+        } else {
+            dt.format("%Y-%m-%d").to_string()
+        }
+    } else {
+        timestamp.to_string()
     }
 }
 
@@ -34,9 +56,10 @@ pub fn warn(msg: &str) {
 
 pub fn display_post(post: &Post, index: Option<usize>) {
     let width = get_term_width();
-    let inner_width = width.saturating_sub(4);
+    let inner_width = width.saturating_sub(4); 
     
     println!("{}", format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed());
+
     let prefix = if let Some(i) = index {
         format!("#{:<2} ", i).bright_white().bold()
     } else {
@@ -56,6 +79,7 @@ pub fn display_post(post: &Post, index: Option<usize>) {
     println!("│ {}{} {:>p$} │", prefix, title.bright_cyan().bold(), "", p = padding);
 
     println!("{}", format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed());
+
     let karma = post.author.karma.unwrap_or(0);
     let author = post.author.name.yellow();
     let sub = post.submolt.name.green();
@@ -100,7 +124,7 @@ pub fn display_post(post: &Post, index: Option<usize>) {
 
     println!("{}", format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed());
     
-    println!("   ID: {} • {}", post.id.dimmed(), post.created_at.dimmed());
+    println!("   ID: {} • {}", post.id.dimmed(), relative_time(&post.created_at).dimmed());
     println!();
 }
 
@@ -118,7 +142,7 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
         format!("{:.0}%", score * 100.0)
     };
 
-    let title_space = inner_width.saturating_sub(score_display.chars().count() + 6);
+    let title_space = inner_width.saturating_sub(score_display.chars().count() + 6); // #1 + space + space + score
     let title_display = if title.chars().count() > title_space {
         let t: String = title.chars().take(title_space.saturating_sub(3)).collect();
         format!("{}...", t)
@@ -152,7 +176,7 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
         }
     }
 
-    println!("{}", format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed());
+        println!("{}", format!("╰{}╯", "─".repeat(width.saturating_sub(2))).dimmed());
     if let Some(post_id) = &result.post_id {
         println!("   Post ID: {}", post_id.dimmed());
     }
@@ -217,15 +241,15 @@ pub fn display_profile(agent: &Agent, title: Option<&str>) {
         };
         println!("  {:<15} {}", "🛡️  Status:", status);
         if let Some(claimed_at) = &agent.claimed_at {
-            println!("  {:<15} {}", "📅 Claimed:", claimed_at.dimmed());
+            println!("  {:<15} {}", "📅 Claimed:", relative_time(claimed_at).dimmed());
         }
     }
 
     if let Some(created_at) = &agent.created_at {
-        println!("  {:<15} {}", "🌱 Joined:", created_at.dimmed());
+        println!("  {:<15} {}", "🌱 Joined:", relative_time(created_at).dimmed());
     }
     if let Some(last_active) = &agent.last_active {
-        println!("  {:<15} {}", "⏰ Active:", last_active.dimmed());
+        println!("  {:<15} {}", "⏰ Active:", relative_time(last_active).dimmed());
     }
 
     if let Some(owner) = &agent.owner {
@@ -317,6 +341,7 @@ pub fn display_dm_request(req: &DmRequest) {
 
     println!("{}", format!("╭{}╮", "─".repeat(width.saturating_sub(2))).dimmed());
     
+    // Calculate padding for the 'from' line
     let from_line_len = 15 + from.chars().count();
     let padding = inner_width.saturating_sub(from_line_len);
     
@@ -355,7 +380,7 @@ pub fn display_status(status: &crate::api::types::StatusResponse) {
         println!("  {:<15} {}", "Agent Name:", agent.name.bright_white().bold());
         println!("  {:<15} {}", "Agent ID:", agent.id.dimmed());
         if let Some(claimed_at) = &agent.claimed_at {
-            println!("  {:<15} {}", "Claimed At:", claimed_at.dimmed());
+            println!("  {:<15} {}", "Claimed At:", relative_time(claimed_at).dimmed());
         }
         println!("{}", "─".repeat(width).dimmed());
     }
@@ -391,7 +416,6 @@ pub fn display_dm_check(response: &crate::api::types::DmCheckResponse) {
             println!("  {}", summary.yellow());
         }
 
-        // Show pending requests
         if let Some(data) = &response.requests
             && !data.items.is_empty()
         {
@@ -442,13 +466,16 @@ pub fn display_message(msg: &crate::api::types::Message) {
     } else {
         &msg.from_agent.name
     };
+    
     let (icon, color) = if msg.from_you {
         ("📤", prefix.green())
     } else {
         ("📥", prefix.yellow())
     };
 
-    println!("\n{} {}", icon, color.bold());
+    let time = relative_time(&msg.created_at);
+
+    println!("\n{} {} ({})", icon, color.bold(), time.dimmed());
     
     let wrapped = textwrap::fill(&msg.message, width.saturating_sub(4));
     for line in wrapped.lines() {
