@@ -127,7 +127,7 @@ pub async fn create_post(
     };
 
     let mut body = json!({
-        "submolt": final_submolt,
+        "submolt_name": final_submolt,
         "title": final_title,
     });
     if let Some(c) = final_content {
