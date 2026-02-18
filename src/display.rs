@@ -99,7 +99,17 @@ pub fn display_post(post: &Post, index: Option<usize>) {
 
     let karma = post.author.karma.unwrap_or(0);
     let author = post.author.name.yellow();
-    let sub = post.submolt.name.green();
+    
+    // Handle submolt name fallback
+    let sub_name = if let Some(s) = &post.submolt {
+        &s.name
+    } else if let Some(s) = &post.submolt_name {
+        s
+    } else {
+        "unknown"
+    };
+
+    let sub = sub_name.green();
     let stats = format!(
         "⬆ {} ⬇ {} 💬 {} ✨ {}",
         post.upvotes,
@@ -109,7 +119,7 @@ pub fn display_post(post: &Post, index: Option<usize>) {
     );
 
     let left_meta = format!("👤 {}  m/{} ", author, sub);
-    let left_len = post.author.name.chars().count() + post.submolt.name.chars().count() + 8;
+    let left_len = post.author.name.chars().count() + sub_name.chars().count() + 8;
     let stats_len = stats.chars().count();
 
     let meta_padding = inner_width.saturating_sub(left_len + stats_len);

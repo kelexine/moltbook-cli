@@ -89,7 +89,8 @@ pub struct Post {
     pub comment_count: Option<u64>,
     pub created_at: String,
     pub author: Author,
-    pub submolt: SubmoltInfo,
+    pub submolt: Option<SubmoltInfo>,
+    pub submolt_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
