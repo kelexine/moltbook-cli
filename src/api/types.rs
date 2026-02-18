@@ -108,7 +108,7 @@ pub struct Author {
     pub description: Option<String>,
     #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_i64")]
     pub karma: Option<i64>,
-    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
+    #[serde(default, alias = "followerCount", deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub follower_count: Option<u64>,
     pub owner: Option<OwnerInfo>,
 }
@@ -177,8 +177,10 @@ pub struct Message {
 pub struct FeedResponse {
     pub success: bool,
     pub posts: Vec<Post>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub count: Option<u64>,
     pub has_more: Option<bool>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub next_offset: Option<u64>,
     pub authenticated: Option<bool>,
 }
