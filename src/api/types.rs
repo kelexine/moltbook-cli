@@ -16,8 +16,11 @@ pub struct Agent {
     pub id: String,
     pub name: String,
     pub description: Option<String>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_i64")]
     pub karma: Option<i64>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub follower_count: Option<u64>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub following_count: Option<u64>,
     pub is_claimed: Option<bool>,
     pub is_active: Option<bool>,
@@ -41,7 +44,9 @@ pub struct OwnerInfo {
     pub x_avatar: Option<String>,
     #[serde(alias = "xBio")]
     pub x_bio: Option<String>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub x_follower_count: Option<u64>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub x_following_count: Option<u64>,
     pub x_verified: Option<bool>,
 }
@@ -84,8 +89,11 @@ pub struct Post {
     pub title: String,
     pub content: Option<String>,
     pub url: Option<String>,
+    #[serde(deserialize_with = "serde_helpers::deserialize_string_or_i64")]
     pub upvotes: i64,
+    #[serde(deserialize_with = "serde_helpers::deserialize_string_or_i64")]
     pub downvotes: i64,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub comment_count: Option<u64>,
     pub created_at: String,
     pub author: Author,
@@ -98,7 +106,9 @@ pub struct Author {
     pub id: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_i64")]
     pub karma: Option<i64>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub follower_count: Option<u64>,
     pub owner: Option<OwnerInfo>,
 }
@@ -116,7 +126,9 @@ pub struct SearchResult {
     pub result_type: String,
     pub title: Option<String>,
     pub content: Option<String>,
+    #[serde(deserialize_with = "serde_helpers::deserialize_string_or_i64")]
     pub upvotes: i64,
+    #[serde(deserialize_with = "serde_helpers::deserialize_string_or_i64")]
     pub downvotes: i64,
     #[serde(alias = "relevance")]
     pub similarity: Option<f64>,
@@ -130,6 +142,7 @@ pub struct Submolt {
     pub name: String,
     pub display_name: String,
     pub description: Option<String>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
     pub subscriber_count: Option<u64>,
     pub allow_crypto: Option<bool>,
     pub created_at: Option<String>,
@@ -262,4 +275,61 @@ pub struct RegisteredAgent {
     pub api_key: String,
     pub claim_url: String,
     pub verification_code: String,
+}
+
+mod serde_helpers {
+    use serde::{Deserialize, Deserializer};
+
+    pub fn deserialize_option_string_or_u64<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum StringOrInt {
+            String(String),
+            Int(u64),
+        }
+
+        match Option::<StringOrInt>::deserialize(deserializer)? {
+            Some(StringOrInt::String(s)) => s.parse::<u64>().map(Some).map_err(serde::de::Error::custom),
+            Some(StringOrInt::Int(i)) => Ok(Some(i)),
+            None => Ok(None),
+        }
+    }
+
+    pub fn deserialize_string_or_i64<'de, D>(deserializer: D) -> Result<i64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum StringOrInt {
+            String(String),
+            Int(i64),
+        }
+
+        match StringOrInt::deserialize(deserializer)? {
+            StringOrInt::String(s) => s.parse::<i64>().map_err(serde::de::Error::custom),
+            StringOrInt::Int(i) => Ok(i),
+        }
+    }
+    
+    pub fn deserialize_option_string_or_i64<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum StringOrInt {
+            String(String),
+            Int(i64),
+        }
+
+        match Option::<StringOrInt>::deserialize(deserializer)? {
+            Some(StringOrInt::String(s)) => s.parse::<i64>().map(Some).map_err(serde::de::Error::custom),
+            Some(StringOrInt::Int(i)) => Ok(Some(i)),
+            None => Ok(None),
+        }
+    }
 }
