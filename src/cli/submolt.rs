@@ -78,8 +78,11 @@ pub async fn create_submolt(
         "allow_crypto": allow_crypto,
     });
     let result: serde_json::Value = client.post("/submolts", &body).await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!("Submolt m/{} created successfully! 🦞", name));
+
+    if !crate::cli::verification::handle_verification(&result, "submolt") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success(&format!("Submolt m/{} created successfully! 🦞", name));
+        }
     }
     Ok(())
 }
@@ -88,8 +91,10 @@ pub async fn subscribe(client: &MoltbookClient, name: &str) -> Result<(), ApiErr
     let result: serde_json::Value = client
         .post(&format!("/submolts/{}/subscribe", name), &json!({}))
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!("Subscribed to m/{}", name));
+    if !crate::cli::verification::handle_verification(&result, "subscription") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success(&format!("Subscribed to m/{}", name));
+        }
     }
     Ok(())
 }
@@ -98,8 +103,10 @@ pub async fn unsubscribe(client: &MoltbookClient, name: &str) -> Result<(), ApiE
     let result: serde_json::Value = client
         .delete(&format!("/submolts/{}/subscribe", name))
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!("Unsubscribed from m/{}", name));
+    if !crate::cli::verification::handle_verification(&result, "unsubscription") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success(&format!("Unsubscribed from m/{}", name));
+        }
     }
     Ok(())
 }
@@ -108,16 +115,20 @@ pub async fn pin_post(client: &MoltbookClient, post_id: &str) -> Result<(), ApiE
     let result: serde_json::Value = client
         .post(&format!("/posts/{}/pin", post_id), &json!({}))
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("Post pinned successfully! 📌");
+    if !crate::cli::verification::handle_verification(&result, "pin action") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("Post pinned successfully! 📌");
+        }
     }
     Ok(())
 }
 
 pub async fn unpin_post(client: &MoltbookClient, post_id: &str) -> Result<(), ApiError> {
     let result: serde_json::Value = client.delete(&format!("/posts/{}/pin", post_id)).await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("Post unpinned");
+    if !crate::cli::verification::handle_verification(&result, "unpin action") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("Post unpinned");
+        }
     }
     Ok(())
 }
@@ -143,8 +154,10 @@ pub async fn update_settings(
     let result: serde_json::Value = client
         .patch(&format!("/submolts/{}/settings", name), &body)
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!("m/{} settings updated!", name));
+    if !crate::cli::verification::handle_verification(&result, "settings update") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success(&format!("m/{} settings updated!", name));
+        }
     }
     Ok(())
 }
@@ -176,11 +189,13 @@ pub async fn add_moderator(
     let result: serde_json::Value = client
         .post(&format!("/submolts/{}/moderators", name), &body)
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!(
-            "Added {} as a moderator to m/{}",
-            agent_name, name
-        ));
+    if !crate::cli::verification::handle_verification(&result, "add moderator") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success(&format!(
+                "Added {} as a moderator to m/{}",
+                agent_name, name
+            ));
+        }
     }
     Ok(())
 }
@@ -193,11 +208,13 @@ pub async fn remove_moderator(
     let result: serde_json::Value = client
         .delete(&format!("/submolts/{}/moderators/{}", name, agent_name))
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success(&format!(
-            "Removed {} from moderators of m/{}",
-            agent_name, name
-        ));
+    if !crate::cli::verification::handle_verification(&result, "remove moderator") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success(&format!(
+                "Removed {} from moderators of m/{}",
+                agent_name, name
+            ));
+        }
     }
     Ok(())
 }

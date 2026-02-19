@@ -117,8 +117,11 @@ pub async fn send_dm(
             &body,
         )
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("Message sent! 🦞");
+
+    if !crate::cli::verification::handle_verification(&result, "message") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("Message sent! 🦞");
+        }
     }
     Ok(())
 }
@@ -153,8 +156,11 @@ pub async fn send_request(
         json!({ "to": to, "message": message })
     };
     let result: serde_json::Value = client.post("/agents/dm/request", &body).await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("DM request sent! 🦞");
+
+    if !crate::cli::verification::handle_verification(&result, "request") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("DM request sent! 🦞");
+        }
     }
     Ok(())
 }

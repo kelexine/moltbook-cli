@@ -172,8 +172,10 @@ pub async fn view_agent_profile(client: &MoltbookClient, name: &str) -> Result<(
 pub async fn update_profile(client: &MoltbookClient, description: &str) -> Result<(), ApiError> {
     let body = json!({ "description": description });
     let result: serde_json::Value = client.patch("/agents/me", &body).await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("Profile updated!");
+    if !crate::cli::verification::handle_verification(&result, "profile update") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("Profile updated!");
+        }
     }
     Ok(())
 }
@@ -185,16 +187,20 @@ pub async fn upload_avatar(
     let result: serde_json::Value = client
         .post_file("/agents/me/avatar", path.to_path_buf())
         .await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("Avatar uploaded successfully! 🦞");
+    if !crate::cli::verification::handle_verification(&result, "avatar upload") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("Avatar uploaded successfully! 🦞");
+        }
     }
     Ok(())
 }
 
 pub async fn remove_avatar(client: &MoltbookClient) -> Result<(), ApiError> {
     let result: serde_json::Value = client.delete("/agents/me/avatar").await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("Avatar removed");
+    if !crate::cli::verification::handle_verification(&result, "avatar removal") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("Avatar removed");
+        }
     }
     Ok(())
 }
@@ -242,11 +248,13 @@ pub async fn follow(client: &MoltbookClient, name: &str) -> Result<(), ApiError>
         let result: serde_json::Value = client
             .post(&format!("/agents/{}/follow", resolved_name), &json!({}))
             .await?;
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success(&format!("Now following {}", resolved_name));
-        } else {
-            let error = result["error"].as_str().unwrap_or("Unknown error");
-            display::error(&format!("Failed to follow {}: {}", resolved_name, error));
+        if !crate::cli::verification::handle_verification(&result, "follow action") {
+            if result["success"].as_bool().unwrap_or(false) {
+                display::success(&format!("Now following {}", resolved_name));
+            } else {
+                let error = result["error"].as_str().unwrap_or("Unknown error");
+                display::error(&format!("Failed to follow {}: {}", resolved_name, error));
+            }
         }
     } else {
         display::error(&format!("Molty '{}' not found", name));
@@ -266,11 +274,13 @@ pub async fn unfollow(client: &MoltbookClient, name: &str) -> Result<(), ApiErro
         let result: serde_json::Value = client
             .delete(&format!("/agents/{}/follow", resolved_name))
             .await?;
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success(&format!("Unfollowed {}", resolved_name));
-        } else {
-            let error = result["error"].as_str().unwrap_or("Unknown error");
-            display::error(&format!("Failed to unfollow {}: {}", resolved_name, error));
+        if !crate::cli::verification::handle_verification(&result, "unfollow action") {
+            if result["success"].as_bool().unwrap_or(false) {
+                display::success(&format!("Unfollowed {}", resolved_name));
+            } else {
+                let error = result["error"].as_str().unwrap_or("Unknown error");
+                display::error(&format!("Failed to unfollow {}: {}", resolved_name, error));
+            }
         }
     } else {
         display::error(&format!("Molty '{}' not found", name));
@@ -281,8 +291,10 @@ pub async fn unfollow(client: &MoltbookClient, name: &str) -> Result<(), ApiErro
 pub async fn setup_owner_email(client: &MoltbookClient, email: &str) -> Result<(), ApiError> {
     let body = json!({ "email": email });
     let result: serde_json::Value = client.post("/agents/me/setup-owner-email", &body).await?;
-    if result["success"].as_bool().unwrap_or(false) {
-        display::success("Owner email set! Check your inbox to verify dashboard access.");
+    if !crate::cli::verification::handle_verification(&result, "email setup") {
+        if result["success"].as_bool().unwrap_or(false) {
+            display::success("Owner email set! Check your inbox to verify dashboard access.");
+        }
     }
     Ok(())
 }

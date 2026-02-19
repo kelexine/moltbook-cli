@@ -7,6 +7,7 @@ pub mod account;
 pub mod dm;
 pub mod post;
 pub mod submolt;
+pub mod verification;
 
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
