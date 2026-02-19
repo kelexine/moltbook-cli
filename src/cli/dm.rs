@@ -11,10 +11,8 @@ use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 use serde_json::json;
 
-
 /// Checks for any new DM activity (requests or unread messages).
 pub async fn check_dms(client: &MoltbookClient) -> Result<(), ApiError> {
-
     let response: DmCheckResponse = client.get("/agents/dm/check").await?;
     display::display_dm_check(&response);
     Ok(())
@@ -22,7 +20,6 @@ pub async fn check_dms(client: &MoltbookClient) -> Result<(), ApiError> {
 
 /// Lists all pending DM requests received by the agent.
 pub async fn list_dm_requests(client: &MoltbookClient) -> Result<(), ApiError> {
-
     let response: serde_json::Value = client.get("/agents/dm/requests").await?;
     let items: Vec<DmRequest> = if let Some(r) = response.get("requests") {
         if r.is_array() {
@@ -101,7 +98,6 @@ pub async fn send_dm(
     message: Option<String>,
     needs_human: bool,
 ) -> Result<(), ApiError> {
-
     let message = match message {
         Some(m) => m,
         None => Input::with_theme(&ColorfulTheme::default())
@@ -118,10 +114,10 @@ pub async fn send_dm(
         )
         .await?;
 
-    if !crate::cli::verification::handle_verification(&result, "message") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Message sent! 🦞");
-        }
+    if !crate::cli::verification::handle_verification(&result, "message")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Message sent! 🦞");
     }
     Ok(())
 }
@@ -133,7 +129,6 @@ pub async fn send_request(
     message: Option<String>,
     by_owner: bool,
 ) -> Result<(), ApiError> {
-
     let to = match to {
         Some(t) => t,
         None => Input::with_theme(&ColorfulTheme::default())
@@ -157,10 +152,10 @@ pub async fn send_request(
     };
     let result: serde_json::Value = client.post("/agents/dm/request", &body).await?;
 
-    if !crate::cli::verification::handle_verification(&result, "request") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("DM request sent! 🦞");
-        }
+    if !crate::cli::verification::handle_verification(&result, "request")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("DM request sent! 🦞");
     }
     Ok(())
 }

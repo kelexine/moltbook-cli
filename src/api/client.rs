@@ -238,4 +238,3 @@ impl MoltbookClient {
         serde_json::from_str(&text).map_err(ApiError::ParseError)
     }
 }
-

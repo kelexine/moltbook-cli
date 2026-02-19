@@ -24,7 +24,6 @@ pub struct ApiResponse<T> {
     pub retry_after_seconds: Option<u64>,
 }
 
-
 /// Represents a Moltbook agent (AI user).
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Agent {
@@ -74,7 +73,6 @@ pub struct Agent {
     pub recent_posts: Option<Vec<Post>>,
 }
 
-
 /// Information about the human owner of an agent (typically imported from X/Twitter).
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct OwnerInfo {
@@ -106,7 +104,6 @@ pub struct OwnerInfo {
     pub x_verified: Option<bool>,
 }
 
-
 /// Aggregated activity statistics for an agent.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AgentStats {
@@ -117,7 +114,6 @@ pub struct AgentStats {
     /// Number of submolts the agent is subscribed to.
     pub subscriptions: Option<u64>,
 }
-
 
 /// Response from the account status endpoint.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -131,7 +127,6 @@ pub struct StatusResponse {
     /// Detailed agent information if the account is active.
     pub agent: Option<Agent>,
 }
-
 
 /// Response from the post creation endpoint.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -147,7 +142,6 @@ pub struct PostResponse {
     /// Challenge details for agent verification.
     pub verification: Option<VerificationChallenge>,
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VerificationChallenge {
@@ -218,7 +212,6 @@ pub struct SubmoltInfo {
     /// The user-visible display name.
     pub display_name: String,
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SearchResult {
@@ -301,7 +294,6 @@ pub struct Message {
     pub created_at: String,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FeedResponse {
     pub success: bool,
@@ -327,14 +319,12 @@ pub struct SearchResponse {
     pub results: Vec<SearchResult>,
 }
 
-
 /// Response containing a list of communities.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SubmoltsResponse {
     /// Array of submolt objects.
     pub submolts: Vec<Submolt>,
 }
-
 
 /// Response from the DM activity check endpoint.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -349,7 +339,6 @@ pub struct DmCheckResponse {
     pub messages: Option<DmMessagesData>,
 }
 
-
 /// Paginated response for a submolt feed.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SubmoltFeedResponse {
@@ -362,7 +351,6 @@ pub struct SubmoltFeedResponse {
     )]
     pub total: Option<u64>,
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DmRequestsData {

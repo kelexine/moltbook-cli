@@ -11,7 +11,6 @@ use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 use serde_json::json;
 
-
 /// Parameters for creating a new post, supporting both positional and flagged args.
 #[derive(Debug, Default)]
 pub struct PostParams {
@@ -33,10 +32,8 @@ pub struct PostParams {
     pub url_pos: Option<String>,
 }
 
-
 /// Fetches and displays the agent's personalized feed.
 pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
-
     let response: FeedResponse = client
         .get(&format!("/feed?sort={}&limit={}", sort, limit))
         .await?;
@@ -61,7 +58,6 @@ pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(),
 
 /// Fetches and displays global posts from the entire network.
 pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
-
     let response: FeedResponse = client
         .get(&format!("/posts?sort={}&limit={}", sort, limit))
         .await?;
@@ -81,7 +77,6 @@ pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Res
 ///
 /// If verification is required, it displays instructions for solving the challenge.
 pub async fn create_post(client: &MoltbookClient, params: PostParams) -> Result<(), ApiError> {
-
     let has_args = params.title.is_some()
         || params.content.is_some()
         || params.url.is_some()
@@ -166,12 +161,12 @@ pub async fn create_post(client: &MoltbookClient, params: PostParams) -> Result<
 
     let result: serde_json::Value = client.post("/posts", &body).await?;
 
-    if !crate::cli::verification::handle_verification(&result, "post") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Post created successfully! 🦞");
-            if let Some(post_id) = result["post"]["id"].as_str() {
-                println!("Post ID: {}", post_id.dimmed());
-            }
+    if !crate::cli::verification::handle_verification(&result, "post")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Post created successfully! 🦞");
+        if let Some(post_id) = result["post"]["id"].as_str() {
+            println!("Post ID: {}", post_id.dimmed());
         }
     }
     Ok(())
@@ -190,10 +185,10 @@ pub async fn view_post(client: &MoltbookClient, post_id: &str) -> Result<(), Api
 
 pub async fn delete_post(client: &MoltbookClient, post_id: &str) -> Result<(), ApiError> {
     let result: serde_json::Value = client.delete(&format!("/posts/{}", post_id)).await?;
-    if !crate::cli::verification::handle_verification(&result, "post deletion") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Post deleted successfully! 🦞");
-        }
+    if !crate::cli::verification::handle_verification(&result, "post deletion")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Post deleted successfully! 🦞");
     }
     Ok(())
 }
@@ -202,12 +197,12 @@ pub async fn upvote_post(client: &MoltbookClient, post_id: &str) -> Result<(), A
     let result: serde_json::Value = client
         .post(&format!("/posts/{}/upvote", post_id), &json!({}))
         .await?;
-    if !crate::cli::verification::handle_verification(&result, "upvote") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Upvoted! 🦞");
-            if let Some(suggestion) = result["suggestion"].as_str() {
-                println!("💡 {}", suggestion.dimmed());
-            }
+    if !crate::cli::verification::handle_verification(&result, "upvote")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Upvoted! 🦞");
+        if let Some(suggestion) = result["suggestion"].as_str() {
+            println!("💡 {}", suggestion.dimmed());
         }
     }
     Ok(())
@@ -217,10 +212,10 @@ pub async fn downvote_post(client: &MoltbookClient, post_id: &str) -> Result<(),
     let result: serde_json::Value = client
         .post(&format!("/posts/{}/downvote", post_id), &json!({}))
         .await?;
-    if !crate::cli::verification::handle_verification(&result, "downvote") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Downvoted");
-        }
+    if !crate::cli::verification::handle_verification(&result, "downvote")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Downvoted");
     }
     Ok(())
 }
@@ -232,7 +227,6 @@ pub async fn search(
     type_filter: &str,
     limit: u64,
 ) -> Result<(), ApiError> {
-
     let encoded = urlencoding::encode(query);
     let response: serde_json::Value = client
         .get(&format!(
@@ -306,10 +300,10 @@ pub async fn create_comment(
         .post(&format!("/posts/{}/comments", post_id), &body)
         .await?;
 
-    if !crate::cli::verification::handle_verification(&result, "comment") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Comment posted!");
-        }
+    if !crate::cli::verification::handle_verification(&result, "comment")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Comment posted!");
     }
     Ok(())
 }
@@ -318,10 +312,10 @@ pub async fn upvote_comment(client: &MoltbookClient, comment_id: &str) -> Result
     let result: serde_json::Value = client
         .post(&format!("/comments/{}/upvote", comment_id), &json!({}))
         .await?;
-    if !crate::cli::verification::handle_verification(&result, "comment upvote") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Comment upvoted! 🦞");
-        }
+    if !crate::cli::verification::handle_verification(&result, "comment upvote")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Comment upvoted! 🦞");
     }
     Ok(())
 }

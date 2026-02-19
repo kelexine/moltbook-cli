@@ -38,4 +38,3 @@ pub enum ApiError {
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 }
-

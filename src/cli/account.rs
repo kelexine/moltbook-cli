@@ -15,7 +15,6 @@ use colored::Colorize;
 use dialoguer::{Input, Select, theme::ColorfulTheme};
 use serde_json::json;
 
-
 /// Internal helper to register a new agent on the Moltbook network.
 ///
 /// Prompts for missing information if not provided via arguments.
@@ -23,7 +22,6 @@ pub async fn register_agent(
     name_opt: Option<String>,
     desc_opt: Option<String>,
 ) -> Result<(String, String), ApiError> {
-
     display::info("Registering New Agent");
 
     let name = match name_opt {
@@ -85,7 +83,6 @@ pub async fn register_command(
     name: Option<String>,
     description: Option<String>,
 ) -> Result<(), ApiError> {
-
     let (api_key, agent_name) = register_agent(name, description).await?;
 
     let config = Config {
@@ -100,7 +97,6 @@ pub async fn register_command(
 
 /// Initializes the CLI configuration, either by registering a new agent or entering an existing key.
 pub async fn init(api_key_opt: Option<String>, name_opt: Option<String>) -> Result<(), ApiError> {
-
     let (api_key, agent_name) = if let (Some(k), Some(n)) = (api_key_opt, name_opt) {
         (k, n)
     } else {
@@ -145,7 +141,6 @@ pub async fn init(api_key_opt: Option<String>, name_opt: Option<String>) -> Resu
 
 /// Fetches and displays the profile of the currently authenticated agent.
 pub async fn view_my_profile(client: &MoltbookClient) -> Result<(), ApiError> {
-
     let response: serde_json::Value = client.get("/agents/me").await?;
     let agent: Agent = if let Some(a) = response.get("agent") {
         serde_json::from_value(a.clone())?
@@ -172,10 +167,10 @@ pub async fn view_agent_profile(client: &MoltbookClient, name: &str) -> Result<(
 pub async fn update_profile(client: &MoltbookClient, description: &str) -> Result<(), ApiError> {
     let body = json!({ "description": description });
     let result: serde_json::Value = client.patch("/agents/me", &body).await?;
-    if !crate::cli::verification::handle_verification(&result, "profile update") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Profile updated!");
-        }
+    if !crate::cli::verification::handle_verification(&result, "profile update")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Profile updated!");
     }
     Ok(())
 }
@@ -187,20 +182,20 @@ pub async fn upload_avatar(
     let result: serde_json::Value = client
         .post_file("/agents/me/avatar", path.to_path_buf())
         .await?;
-    if !crate::cli::verification::handle_verification(&result, "avatar upload") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Avatar uploaded successfully! 🦞");
-        }
+    if !crate::cli::verification::handle_verification(&result, "avatar upload")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Avatar uploaded successfully! 🦞");
     }
     Ok(())
 }
 
 pub async fn remove_avatar(client: &MoltbookClient) -> Result<(), ApiError> {
     let result: serde_json::Value = client.delete("/agents/me/avatar").await?;
-    if !crate::cli::verification::handle_verification(&result, "avatar removal") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Avatar removed");
-        }
+    if !crate::cli::verification::handle_verification(&result, "avatar removal")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Avatar removed");
     }
     Ok(())
 }
@@ -213,7 +208,6 @@ pub async fn status(client: &MoltbookClient) -> Result<(), ApiError> {
 
 /// Performs a consolidated "heartbeat" check of account status, DMs, and recent feed.
 pub async fn heartbeat(client: &MoltbookClient) -> Result<(), ApiError> {
-
     println!("{}", "💓 Heartbeat Consolidated Check".bright_red().bold());
     println!("{}", "━".repeat(60).bright_black());
 
@@ -248,13 +242,13 @@ pub async fn follow(client: &MoltbookClient, name: &str) -> Result<(), ApiError>
         let result: serde_json::Value = client
             .post(&format!("/agents/{}/follow", resolved_name), &json!({}))
             .await?;
-        if !crate::cli::verification::handle_verification(&result, "follow action") {
-            if result["success"].as_bool().unwrap_or(false) {
-                display::success(&format!("Now following {}", resolved_name));
-            } else {
-                let error = result["error"].as_str().unwrap_or("Unknown error");
-                display::error(&format!("Failed to follow {}: {}", resolved_name, error));
-            }
+        if !crate::cli::verification::handle_verification(&result, "follow action")
+            && result["success"].as_bool().unwrap_or(false)
+        {
+            display::success(&format!("Now following {}", resolved_name));
+        } else if !result["success"].as_bool().unwrap_or(false) {
+            let error = result["error"].as_str().unwrap_or("Unknown error");
+            display::error(&format!("Failed to follow {}: {}", resolved_name, error));
         }
     } else {
         display::error(&format!("Molty '{}' not found", name));
@@ -274,13 +268,13 @@ pub async fn unfollow(client: &MoltbookClient, name: &str) -> Result<(), ApiErro
         let result: serde_json::Value = client
             .delete(&format!("/agents/{}/follow", resolved_name))
             .await?;
-        if !crate::cli::verification::handle_verification(&result, "unfollow action") {
-            if result["success"].as_bool().unwrap_or(false) {
-                display::success(&format!("Unfollowed {}", resolved_name));
-            } else {
-                let error = result["error"].as_str().unwrap_or("Unknown error");
-                display::error(&format!("Failed to unfollow {}: {}", resolved_name, error));
-            }
+        if !crate::cli::verification::handle_verification(&result, "unfollow action")
+            && result["success"].as_bool().unwrap_or(false)
+        {
+            display::success(&format!("Unfollowed {}", resolved_name));
+        } else if !result["success"].as_bool().unwrap_or(false) {
+            let error = result["error"].as_str().unwrap_or("Unknown error");
+            display::error(&format!("Failed to unfollow {}: {}", resolved_name, error));
         }
     } else {
         display::error(&format!("Molty '{}' not found", name));
@@ -291,10 +285,10 @@ pub async fn unfollow(client: &MoltbookClient, name: &str) -> Result<(), ApiErro
 pub async fn setup_owner_email(client: &MoltbookClient, email: &str) -> Result<(), ApiError> {
     let body = json!({ "email": email });
     let result: serde_json::Value = client.post("/agents/me/setup-owner-email", &body).await?;
-    if !crate::cli::verification::handle_verification(&result, "email setup") {
-        if result["success"].as_bool().unwrap_or(false) {
-            display::success("Owner email set! Check your inbox to verify dashboard access.");
-        }
+    if !crate::cli::verification::handle_verification(&result, "email setup")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success("Owner email set! Check your inbox to verify dashboard access.");
     }
     Ok(())
 }
@@ -317,10 +311,10 @@ pub async fn verify(client: &MoltbookClient, code: &str, solution: &str) -> Resu
                     }
                 } else if let Some(comment) = res.get("comment") {
                     display::display_comment(comment, 0);
-                } else if let Some(agent) = res.get("agent") {
-                    if let Ok(a) = serde_json::from_value::<crate::api::types::Agent>(agent.clone()) {
-                        display::display_profile(&a, Some("Verified Agent Profile"));
-                    }
+                } else if let Some(agent) = res.get("agent")
+                    && let Ok(a) = serde_json::from_value::<crate::api::types::Agent>(agent.clone())
+                {
+                    display::display_profile(&a, Some("Verified Agent Profile"));
                 }
 
                 if let Some(id) = res["id"].as_str() {

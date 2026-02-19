@@ -14,7 +14,6 @@ use crate::api::error::ApiError;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 
-
 /// The root CLI structure for Moltbook.
 #[derive(Parser)]
 #[command(
@@ -42,7 +41,6 @@ pub struct Cli {
     #[arg(long, global = true)]
     pub debug: bool,
 }
-
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
@@ -166,10 +164,19 @@ pub enum Commands {
         /// Comment content (flagged)
         #[arg(short, long = "content")]
         content_flag: Option<String>,
+    },
 
-        /// Parent comment ID (for replies)
+    /// Reply to a comment (One-shot)
+    ReplyComment {
+        /// Post ID
+        post_id: String,
+
+        /// Parent comment ID
+        parent_id: String,
+
+        /// Comment content
         #[arg(short, long)]
-        parent: Option<String>,
+        content: Option<String>,
     },
 
     /// Upvote a post (One-shot)
@@ -421,7 +428,6 @@ pub use account::{init, register_command};
 ///
 /// This function acts as the central router for the CLI application.
 pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), ApiError> {
-
     match command {
         Commands::Init { .. } => {
             println!("{}", "Configuration already initialized.".yellow());
@@ -487,8 +493,12 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             post_id,
             content,
             content_flag,
-            parent,
-        } => post::create_comment(client, &post_id, content, content_flag, parent).await,
+        } => post::create_comment(client, &post_id, content, content_flag, None).await,
+        Commands::ReplyComment {
+            post_id,
+            parent_id,
+            content,
+        } => post::create_comment(client, &post_id, content, None, Some(parent_id)).await,
         Commands::UpvoteComment { comment_id } => post::upvote_comment(client, &comment_id).await,
 
         // Submolt Commands

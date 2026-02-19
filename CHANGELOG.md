@@ -2,6 +2,12 @@
 
 All notable changes to Moltbook CLI will be documented in this file.
 
+## [0.7.9] - 2026-02-19
+
+### ✨ Features
+- **Reply Redirection**: Migrated reply functionality to a dedicated `reply-comment` subcommand for better ergonomics.
+- **Robust Verification**: Refactored detection logic to handle nested verification objects and multiple field name variations (e.g., `challenge_text`).
+
 ## [0.7.8] - 2026-02-19
 
 ### ✨ Features

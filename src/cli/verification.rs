@@ -1,7 +1,7 @@
 //! Verification challenge handling for the Moltbook CLI.
 //!
-//! This module provides generic logic for detecting and displaying 
-//! verification requirements (e.g., CAPTCHAs, math problems) 
+//! This module provides generic logic for detecting and displaying
+//! verification requirements (e.g., CAPTCHAs, math problems)
 //! returned by the Moltbook API.
 
 use crate::display;
@@ -46,7 +46,9 @@ pub fn handle_verification(result: &serde_json::Value, action: &str) -> bool {
     }
 
     if let Some(true) = result["verification_required"].as_bool() {
-        display::warn("Verification is required, but challenge details are missing from the response.");
+        display::warn(
+            "Verification is required, but challenge details are missing from the response.",
+        );
         return true;
     }
 

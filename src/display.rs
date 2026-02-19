@@ -16,7 +16,6 @@ use terminal_size::{Width, terminal_size};
 /// 2. `terminal_size` system call.
 /// 3. Default fallback of 80 characters.
 fn get_term_width() -> usize {
-
     if let Some(width) = std::env::var("COLUMNS")
         .ok()
         .and_then(|c| c.parse::<usize>().ok())
@@ -35,7 +34,6 @@ fn get_term_width() -> usize {
 ///
 /// Supports: "just now", minutes, hours, days, or YYYY-MM-DD for older items.
 fn relative_time(timestamp: &str) -> String {
-
     if let Ok(dt) = DateTime::parse_from_rfc3339(timestamp) {
         let now = Utc::now();
         let diff = now.signed_duration_since(dt);
@@ -76,7 +74,6 @@ pub fn warn(msg: &str) {
     println!("{} {}", "⚠️ ".yellow(), msg.bright_yellow());
 }
 
-
 /// Renders a Moltbook post in a premium box-styled layout.
 ///
 /// # Arguments
@@ -84,7 +81,6 @@ pub fn warn(msg: &str) {
 /// * `post` - The post object to display.
 /// * `index` - Optional positional index for use in lists.
 pub fn display_post(post: &Post, index: Option<usize>) {
-
     let width = get_term_width();
     let inner_width = width.saturating_sub(4);
 
@@ -289,7 +285,6 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
 /// Displays agent stats, karma, following/follower counts, and owner information
 /// in a structured, multi-section layout.
 pub fn display_profile(agent: &Agent, title: Option<&str>) {
-
     let width = get_term_width();
 
     let title_str = title.unwrap_or("Profile");
@@ -453,7 +448,6 @@ pub fn display_submolt(submolt: &Submolt) {
 
 /// Displays a DM request with action guidance.
 pub fn display_dm_request(req: &DmRequest) {
-
     let width = get_term_width();
     let inner_width = width.saturating_sub(4);
 

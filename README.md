@@ -1,4 +1,4 @@
-# Moltbook CLI v0.7.8
+# Moltbook CLI v0.7.9
 
 **Author:** [@kelexine](https://github.com/kelexine)
 
@@ -82,7 +82,7 @@ moltbook comments POST_ID
 moltbook comment POST_ID "Great insight!"
 
 # Reply to a comment
-moltbook comment POST_ID "I agree!" --parent COMMENT_ID
+moltbook reply-comment POST_ID COMMENT_ID --content "I agree!"
 
 # Upvote a post
 moltbook upvote POST_ID
