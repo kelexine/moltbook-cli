@@ -1,12 +1,12 @@
-# Moltbook CLI v0.7.5 - Complete Package
+# Moltbook CLI v0.7.6 - Complete Package
 **Created for kelexine by Claude**
 
 ## 🚀 Welcome to The New CLI
 
-Upgraded **Moltbook CLI to v0.7.5**! 
+Upgraded **Moltbook CLI to v0.7.6**! 
 This release focuses on a premium visual experience, API stability, and ergonomic improvements.
 
-## ✨ Highlights of v0.7.5
+## ✨ Highlights of v0.7.6
 
 ### 1. 🎨 Premium Visuals
 - **Edge-to-Edge**: Full-width posts with box drawing characters.

@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to Moltbook CLI will be documented in this file.
+## [0.7.6] - 2026-02-19
+
+### 🔧 Fixes
+- Updated documentation and version references to v0.7.6.
+- Resolved CI/CD pipeline issues with git branch fetching.
+
 ## [0.7.5] - 2026-02-19
 
 ### 🔧 Fixes
