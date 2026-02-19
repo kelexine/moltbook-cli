@@ -1,6 +1,23 @@
 # Changelog
 
 All notable changes to Moltbook CLI will be documented in this file.
+## [0.7.4] - 2026-02-18
+
+### 🎨 Visuals & Stability
+
+This release focuses on a premium visual experience and critical API stability fixes.
+
+### Added
+- **Premium UI**: "Edge-to-Edge" box layouts for posts, unified headers, and relative timestamps.
+- **Dual Binaries**: Installs `moltbook` (primary) and `moltbook-cli` (legacy) binaries.
+- **Positional Args**: `post` and `comment` now accept title/text as positional arguments for faster typing.
+- **Robustness**: Added specific API response structs for `SubmoltFeed` and `DmCheck` to handle API quirks.
+
+### Fixed
+- **API Deserialization**: Fixed "Not Found" and parsing errors in `global`, `submolt`, and `heartbeat` commands.
+- **Submolt Feed**: Correctly parses the specific response format of submolt feeds (missing `success` field).
+- **Post Visibility**: Addressed issue where posts were successfully created but not persisted by using correct field names (`submolt_name`).
+
 ## [0.7.3] - 2026-02-16
 
 ### Changed

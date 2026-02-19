@@ -1,6 +1,6 @@
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
-use crate::api::types::{FeedResponse, Submolt, SubmoltFeedResponse};
+use crate::api::types::{Submolt, SubmoltFeedResponse};
 use crate::display;
 use colored::Colorize;
 use serde_json::json;
