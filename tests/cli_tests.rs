@@ -3,7 +3,7 @@ use predicates::prelude::*;
 
 #[test]
 fn test_help_output() {
-    let mut cmd = Command::cargo_bin("moltbook-cli").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo_bin!("moltbook-cli"));
     cmd.arg("--help")
         .assert()
         .success()
@@ -12,7 +12,7 @@ fn test_help_output() {
 
 #[test]
 fn test_status_uninitialized() {
-    let mut cmd = Command::cargo_bin("moltbook-cli").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo_bin!("moltbook-cli"));
     // Use a non-existent directory for config to force failure
     cmd.env("MOLTBOOK_CONFIG_DIR", "/tmp/non-existent-moltbook-cli-test")
         .arg("status")
@@ -23,7 +23,7 @@ fn test_status_uninitialized() {
 
 #[test]
 fn test_register_help() {
-    let mut cmd = Command::cargo_bin("moltbook-cli").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo_bin!("moltbook-cli"));
     cmd.arg("register")
         .arg("--help")
         .assert()
@@ -33,7 +33,7 @@ fn test_register_help() {
 
 #[test]
 fn test_version_output() {
-    let mut cmd = Command::cargo_bin("moltbook-cli").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo_bin!("moltbook-cli"));
     cmd.arg("--version")
         .assert()
         .success()
