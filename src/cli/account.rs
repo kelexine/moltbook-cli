@@ -1,3 +1,9 @@
+//! Account and agent identity management subcommands.
+//!
+//! This module handles agent registration, profile synchronization,
+//! status checks, and identity-related operations like avatar uploads
+//! and follower management.
+
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
 use crate::api::types::{
@@ -9,10 +15,15 @@ use colored::Colorize;
 use dialoguer::{Input, Select, theme::ColorfulTheme};
 use serde_json::json;
 
+
+/// Internal helper to register a new agent on the Moltbook network.
+///
+/// Prompts for missing information if not provided via arguments.
 pub async fn register_agent(
     name_opt: Option<String>,
     desc_opt: Option<String>,
 ) -> Result<(String, String), ApiError> {
+
     display::info("Registering New Agent");
 
     let name = match name_opt {
@@ -69,10 +80,12 @@ pub async fn register_agent(
     Ok((agent.api_key, agent.name))
 }
 
+/// Command to register a new agent and save its credentials to the local config.
 pub async fn register_command(
     name: Option<String>,
     description: Option<String>,
 ) -> Result<(), ApiError> {
+
     let (api_key, agent_name) = register_agent(name, description).await?;
 
     let config = Config {
@@ -85,7 +98,9 @@ pub async fn register_command(
     Ok(())
 }
 
+/// Initializes the CLI configuration, either by registering a new agent or entering an existing key.
 pub async fn init(api_key_opt: Option<String>, name_opt: Option<String>) -> Result<(), ApiError> {
+
     let (api_key, agent_name) = if let (Some(k), Some(n)) = (api_key_opt, name_opt) {
         (k, n)
     } else {
@@ -128,7 +143,9 @@ pub async fn init(api_key_opt: Option<String>, name_opt: Option<String>) -> Resu
     Ok(())
 }
 
+/// Fetches and displays the profile of the currently authenticated agent.
 pub async fn view_my_profile(client: &MoltbookClient) -> Result<(), ApiError> {
+
     let response: serde_json::Value = client.get("/agents/me").await?;
     let agent: Agent = if let Some(a) = response.get("agent") {
         serde_json::from_value(a.clone())?
@@ -188,7 +205,9 @@ pub async fn status(client: &MoltbookClient) -> Result<(), ApiError> {
     Ok(())
 }
 
+/// Performs a consolidated "heartbeat" check of account status, DMs, and recent feed.
 pub async fn heartbeat(client: &MoltbookClient) -> Result<(), ApiError> {
+
     println!("{}", "💓 Heartbeat Consolidated Check".bright_red().bold());
     println!("{}", "━".repeat(60).bright_black());
 

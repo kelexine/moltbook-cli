@@ -1,3 +1,8 @@
+//! Command-line interface definitions and routing logic.
+//!
+//! This module defines the `clap` command structure and routes execution to
+//! specifically focused submodules (account, dm, post, submolt).
+
 pub mod account;
 pub mod dm;
 pub mod post;
@@ -8,6 +13,8 @@ use crate::api::error::ApiError;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 
+
+/// The root CLI structure for Moltbook.
 #[derive(Parser)]
 #[command(
     author,
@@ -26,13 +33,15 @@ Documentation: https://www.moltbook.com/skill.md
 Source: https://github.com/kelexine/moltbook-cli"
 )]
 pub struct Cli {
+    /// The specific command to execute.
     #[command(subcommand)]
     pub command: Commands,
 
-    /// Enable debug mode
+    /// Enable debug mode to see raw API requests and responses.
     #[arg(long, global = true)]
     pub debug: bool,
 }
+
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
@@ -407,7 +416,11 @@ pub enum Commands {
 // Re-export core functions needed by main.rs
 pub use account::{init, register_command};
 
+/// Dispatches the chosen command to its respective implementation function.
+///
+/// This function acts as the central router for the CLI application.
 pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), ApiError> {
+
     match command {
         Commands::Init { .. } => {
             println!("{}", "Configuration already initialized.".yellow());

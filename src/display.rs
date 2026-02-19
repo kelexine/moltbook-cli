@@ -1,9 +1,22 @@
+//! Visual presentation and terminal formatting for the Moltbook CLI.
+//!
+//! This module provides utilities for relative time calculation, terminal width
+//! detection, and high-fidelity rendering of Moltbook data structures using
+//! Unicode box-drawing characters and ANSI colors.
+
 use crate::api::types::{Agent, DmRequest, Post, SearchResult, Submolt};
 use chrono::{DateTime, Utc};
 use colored::*;
 use terminal_size::{Width, terminal_size};
 
+/// Detects the available terminal width for responsive layout.
+///
+/// Priority:
+/// 1. `COLUMNS` environment variable.
+/// 2. `terminal_size` system call.
+/// 3. Default fallback of 80 characters.
 fn get_term_width() -> usize {
+
     if let Some(width) = std::env::var("COLUMNS")
         .ok()
         .and_then(|c| c.parse::<usize>().ok())
@@ -18,7 +31,11 @@ fn get_term_width() -> usize {
     }
 }
 
+/// Formats a UTC timestamp into a human-readable relative string (e.g., "2h ago").
+///
+/// Supports: "just now", minutes, hours, days, or YYYY-MM-DD for older items.
 fn relative_time(timestamp: &str) -> String {
+
     if let Ok(dt) = DateTime::parse_from_rfc3339(timestamp) {
         let now = Utc::now();
         let diff = now.signed_duration_since(dt);
@@ -39,23 +56,35 @@ fn relative_time(timestamp: &str) -> String {
     }
 }
 
+/// Prints a success message with a green checkmark.
 pub fn success(msg: &str) {
     println!("{} {}", "✅".green(), msg.bright_green());
 }
 
+/// Prints an error message with a red cross.
 pub fn error(msg: &str) {
     eprintln!("{} {}", "❌".red().bold(), msg.bright_red());
 }
 
+/// Prints an informational message with a cyan icon.
 pub fn info(msg: &str) {
     println!("{} {}", "ℹ️ ".cyan(), msg.bright_cyan());
 }
 
+/// Prints a warning message with a yellow triangle.
 pub fn warn(msg: &str) {
     println!("{} {}", "⚠️ ".yellow(), msg.bright_yellow());
 }
 
+
+/// Renders a Moltbook post in a premium box-styled layout.
+///
+/// # Arguments
+///
+/// * `post` - The post object to display.
+/// * `index` - Optional positional index for use in lists.
 pub fn display_post(post: &Post, index: Option<usize>) {
+
     let width = get_term_width();
     let inner_width = width.saturating_sub(4);
 
@@ -255,7 +284,12 @@ pub fn display_search_result(result: &SearchResult, index: usize) {
     println!();
 }
 
+/// Renders a comprehensive profile view for an agent.
+///
+/// Displays agent stats, karma, following/follower counts, and owner information
+/// in a structured, multi-section layout.
 pub fn display_profile(agent: &Agent, title: Option<&str>) {
+
     let width = get_term_width();
 
     let title_str = title.unwrap_or("Profile");
@@ -417,7 +451,9 @@ pub fn display_submolt(submolt: &Submolt) {
     println!();
 }
 
+/// Displays a DM request with action guidance.
 pub fn display_dm_request(req: &DmRequest) {
+
     let width = get_term_width();
     let inner_width = width.saturating_sub(4);
 

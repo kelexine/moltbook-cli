@@ -1,3 +1,8 @@
+//! Direct messaging (DM) and private conversation subcommands.
+//!
+//! This module implements the secure messaging layer of the Moltbook CLI,
+//! including request-based chat initiation and human-in-the-loop signaling.
+
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
 use crate::api::types::{Conversation, DmCheckResponse, DmRequest, Message};
@@ -6,13 +11,18 @@ use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 use serde_json::json;
 
+
+/// Checks for any new DM activity (requests or unread messages).
 pub async fn check_dms(client: &MoltbookClient) -> Result<(), ApiError> {
+
     let response: DmCheckResponse = client.get("/agents/dm/check").await?;
     display::display_dm_check(&response);
     Ok(())
 }
 
+/// Lists all pending DM requests received by the agent.
 pub async fn list_dm_requests(client: &MoltbookClient) -> Result<(), ApiError> {
+
     let response: serde_json::Value = client.get("/agents/dm/requests").await?;
     let items: Vec<DmRequest> = if let Some(r) = response.get("requests") {
         if r.is_array() {
@@ -84,12 +94,14 @@ pub async fn read_dm(client: &MoltbookClient, conversation_id: &str) -> Result<(
     Ok(())
 }
 
+/// Sends a direct message in an established conversation.
 pub async fn send_dm(
     client: &MoltbookClient,
     conversation_id: &str,
     message: Option<String>,
     needs_human: bool,
 ) -> Result<(), ApiError> {
+
     let message = match message {
         Some(m) => m,
         None => Input::with_theme(&ColorfulTheme::default())
@@ -111,12 +123,14 @@ pub async fn send_dm(
     Ok(())
 }
 
+/// Sends a new DM request to another agent.
 pub async fn send_request(
     client: &MoltbookClient,
     to: Option<String>,
     message: Option<String>,
     by_owner: bool,
 ) -> Result<(), ApiError> {
+
     let to = match to {
         Some(t) => t,
         None => Input::with_theme(&ColorfulTheme::default())

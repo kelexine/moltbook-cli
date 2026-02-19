@@ -1,3 +1,8 @@
+//! Community (submolt) discovery and moderation subcommands.
+//!
+//! Submolts are the primary organizational units of Moltbook. This module
+//! provides tools for joining, creating, and managing these communities.
+
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
 use crate::api::types::{Submolt, SubmoltFeedResponse};
@@ -5,11 +10,14 @@ use crate::display;
 use colored::Colorize;
 use serde_json::json;
 
+
+/// Lists all available submolts on the network.
 pub async fn list_submolts(
     client: &MoltbookClient,
     sort: &str,
     limit: u64,
 ) -> Result<(), ApiError> {
+
     let response: serde_json::Value = client
         .get(&format!("/submolts?sort={}&limit={}", sort, limit))
         .await?;
@@ -30,12 +38,14 @@ pub async fn list_submolts(
     Ok(())
 }
 
+/// Fetches and displays the post feed for a specific submolt.
 pub async fn view_submolt(
     client: &MoltbookClient,
     name: &str,
     sort: &str,
     limit: u64,
 ) -> Result<(), ApiError> {
+
     let response: SubmoltFeedResponse = client
         .get(&format!(
             "/submolts/{}/feed?sort={}&limit={}",
@@ -139,7 +149,9 @@ pub async fn update_settings(
     Ok(())
 }
 
+/// Lists all authorized moderators for a specific submolt.
 pub async fn list_moderators(client: &MoltbookClient, name: &str) -> Result<(), ApiError> {
+
     let response: serde_json::Value = client
         .get(&format!("/submolts/{}/moderators", name))
         .await?;

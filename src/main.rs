@@ -1,3 +1,11 @@
+//! Binary entry point for the Moltbook CLI.
+//!
+//! This module handles the top-level CLI execution flow:
+//! 1. Parses command-line arguments.
+//! 2. Routes commands that don't require configuration (init, register).
+//! 3. Loads agent credentials and initializes the API client for all other commands.
+//! 4. Executes requested operations and handles top-level errors.
+
 use clap::Parser;
 use colored::Colorize;
 use moltbook_cli::api::client::MoltbookClient;
@@ -47,3 +55,4 @@ async fn main() {
         }
     }
 }
+

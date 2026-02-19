@@ -1,3 +1,9 @@
+//! The core HTTP client for the Moltbook API.
+//!
+//! This module provides the `MoltbookClient` which handles authentication headers,
+//! rate limit parsing, CAPTCHA detection, and JSON serialization/deserialization
+//! for all API interactions.
+
 use crate::api::error::ApiError;
 use mime_guess::from_path;
 use reqwest::Client;
@@ -5,8 +11,13 @@ use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use std::path::PathBuf;
 
+/// The base URL for the Moltbook API.
 const API_BASE: &str = "https://www.moltbook.com/api/v1";
 
+/// A thread-safe, asynchronous client for the Moltbook API.
+///
+/// Designed to be reused throughout the application lifecycle to benefit from
+/// connection pooling and internal state management.
 pub struct MoltbookClient {
     client: Client,
     api_key: String,
@@ -14,6 +25,12 @@ pub struct MoltbookClient {
 }
 
 impl MoltbookClient {
+    /// Creates a new `MoltbookClient` instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_key` - The API key for authentication.
+    /// * `debug` - If true, logs all requests and responses to stderr.
     pub fn new(api_key: String, debug: bool) -> Self {
         Self {
             client: Client::new(),
@@ -22,6 +39,11 @@ impl MoltbookClient {
         }
     }
 
+    /// Performs a GET request to the specified endpoint.
+    ///
+    /// # Errors
+    ///
+    /// Returns `ApiError` if the network fails, the API returns an error, or parsing fails.
     pub async fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, ApiError> {
         let url = format!("{}{}", API_BASE, endpoint);
 
@@ -39,6 +61,11 @@ impl MoltbookClient {
         self.handle_response(response).await
     }
 
+    /// Performs a POST request with a JSON body.
+    ///
+    /// # Errors
+    ///
+    /// Returns `ApiError` if the network fails, the API returns an error, or serialization/parsing fails.
     pub async fn post<T: DeserializeOwned>(
         &self,
         endpoint: &str,
@@ -66,6 +93,13 @@ impl MoltbookClient {
         self.handle_response(response).await
     }
 
+    /// Uploads a file using multipart/form-data.
+    ///
+    /// Typically used for avatar updates.
+    ///
+    /// # Errors
+    ///
+    /// Returns `ApiError` if the file cannot be read or the upload fails.
     pub async fn post_file<T: DeserializeOwned>(
         &self,
         endpoint: &str,
@@ -103,6 +137,7 @@ impl MoltbookClient {
         self.handle_response(response).await
     }
 
+    /// Performs a PATCH request with a JSON body.
     pub async fn patch<T: DeserializeOwned>(
         &self,
         endpoint: &str,
@@ -130,6 +165,7 @@ impl MoltbookClient {
         self.handle_response(response).await
     }
 
+    /// Performs a DELETE request to the specified endpoint.
     pub async fn delete<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, ApiError> {
         let url = format!("{}{}", API_BASE, endpoint);
 
@@ -147,6 +183,13 @@ impl MoltbookClient {
         self.handle_response(response).await
     }
 
+    /// Unified handler for API responses, managing errors and parsing.
+    ///
+    /// This method specifically handles:
+    /// - HTTP 429 Rate Limiting with retry extraction.
+    /// - CAPTCHA required status.
+    /// - Flattened API errors (error message + hint).
+    /// - General JSON deserialization.
     async fn handle_response<T: DeserializeOwned>(
         &self,
         response: reqwest::Response,
@@ -160,7 +203,6 @@ impl MoltbookClient {
         }
 
         if status.as_u16() == 429 {
-            // Try to parse rate limit info
             if let Ok(json) = serde_json::from_str::<Value>(&text) {
                 if let Some(retry) = json.get("retry_after_minutes").and_then(|v| v.as_u64()) {
                     return Err(ApiError::RateLimited(format!("{} minutes", retry)));
@@ -172,7 +214,6 @@ impl MoltbookClient {
             return Err(ApiError::RateLimited("Wait before retrying".to_string()));
         }
 
-        // Handle generic errors
         if !status.is_success() {
             if let Ok(json) = serde_json::from_str::<Value>(&text) {
                 let error = json
@@ -180,7 +221,6 @@ impl MoltbookClient {
                     .and_then(|v| v.as_str())
                     .unwrap_or("Unknown error");
 
-                // Handle Captcha
                 if error == "captcha_required" {
                     let token = json
                         .get("token")
@@ -198,3 +238,4 @@ impl MoltbookClient {
         serde_json::from_str(&text).map_err(ApiError::ParseError)
     }
 }
+

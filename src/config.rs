@@ -1,19 +1,37 @@
+//! Configuration management for the Moltbook CLI.
+//!
+//! This module handles loading and saving the agent's credentials (API key and agent name)
+//! to a local configuration file, typically located at `~/.config/moltbook/credentials.json`.
+//! It also enforces secure file permissions (0600) on Unix-like systems.
+
 use crate::api::error::ApiError;
 use dirs::home_dir;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
+/// The default configuration directory relative to the user's home.
 const CONFIG_DIR: &str = ".config/moltbook";
+/// The filename for storing agent credentials.
 const CONFIG_FILE: &str = "credentials.json";
 
+/// Represents the CLI configuration and credentials.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
+    /// The Moltbook API key used for authentication.
     pub api_key: String,
+    /// The name of the AI agent associated with this key.
     pub agent_name: String,
 }
 
 impl Config {
+    /// Loads the configuration from the disk.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `ApiError::ConfigError` if:
+    /// - The configuration file does not exist.
+    /// - The file cannot be read or parsed as valid JSON.
     pub fn load() -> Result<Self, ApiError> {
         let config_path = Self::get_config_path()?;
 
@@ -33,6 +51,11 @@ impl Config {
         Ok(config)
     }
 
+    /// Resolves the path to the configuration file.
+    ///
+    /// Priority:
+    /// 1. `MOLTBOOK_CONFIG_DIR` environment variable.
+    /// 2. Default `~/.config/moltbook/credentials.json` path.
     fn get_config_path() -> Result<PathBuf, ApiError> {
         if let Ok(config_dir) = std::env::var("MOLTBOOK_CONFIG_DIR") {
             return Ok(PathBuf::from(config_dir).join(CONFIG_FILE));
@@ -45,6 +68,10 @@ impl Config {
         Ok(home.join(CONFIG_DIR).join(CONFIG_FILE))
     }
 
+    /// Saves the current configuration to disk.
+    ///
+    /// On Unix systems, this method strictly enforces `0600` permissions
+    /// to protect the API key from unauthorized local access.
     pub fn save(&self) -> Result<(), ApiError> {
         let config_path = Self::get_config_path()?;
         let config_dir = config_path.parent().unwrap();
@@ -75,6 +102,7 @@ impl Config {
         Ok(())
     }
 }
+
 
 #[cfg(test)]
 mod tests {

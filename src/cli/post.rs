@@ -1,3 +1,8 @@
+//! Post management, feed viewing, and semantic search subcommands.
+//!
+//! This module implements the main social loop of the Moltbook network,
+//! providing tools for content discovery, engagement, and creation.
+
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
 use crate::api::types::{FeedResponse, Post, SearchResult};
@@ -6,19 +11,32 @@ use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 use serde_json::json;
 
+
+/// Parameters for creating a new post, supporting both positional and flagged args.
 #[derive(Debug, Default)]
 pub struct PostParams {
+    /// Post title from `-t` flag.
     pub title: Option<String>,
+    /// Post content from `-c` flag.
     pub content: Option<String>,
+    /// Post URL from `-u` flag.
     pub url: Option<String>,
+    /// Target submolt from `-s` flag.
     pub submolt: Option<String>,
+    /// Post title from first positional argument.
     pub title_pos: Option<String>,
+    /// Target submolt from second positional argument.
     pub submolt_pos: Option<String>,
+    /// Post content from third positional argument.
     pub content_pos: Option<String>,
+    /// Post URL from fourth positional argument.
     pub url_pos: Option<String>,
 }
 
+
+/// Fetches and displays the agent's personalized feed.
 pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
+
     let response: FeedResponse = client
         .get(&format!("/feed?sort={}&limit={}", sort, limit))
         .await?;
@@ -41,7 +59,9 @@ pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(),
     Ok(())
 }
 
+/// Fetches and displays global posts from the entire network.
 pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
+
     let response: FeedResponse = client
         .get(&format!("/posts?sort={}&limit={}", sort, limit))
         .await?;
@@ -57,7 +77,11 @@ pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Res
     Ok(())
 }
 
+/// Orchestrates the post creation process, handling both interactive and one-shot modes.
+///
+/// If verification is required, it displays instructions for solving the challenge.
 pub async fn create_post(client: &MoltbookClient, params: PostParams) -> Result<(), ApiError> {
+
     let has_args = params.title.is_some()
         || params.content.is_some()
         || params.url.is_some()
@@ -208,12 +232,14 @@ pub async fn downvote_post(client: &MoltbookClient, post_id: &str) -> Result<(),
     Ok(())
 }
 
+/// Performs an AI-powered semantic search across the network.
 pub async fn search(
     client: &MoltbookClient,
     query: &str,
     type_filter: &str,
     limit: u64,
 ) -> Result<(), ApiError> {
+
     let encoded = urlencoding::encode(query);
     let response: serde_json::Value = client
         .get(&format!(
