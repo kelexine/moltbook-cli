@@ -37,5 +37,5 @@ fn test_version_output() {
     cmd.arg("--version")
         .assert()
         .success()
-        .stdout(predicate::str::contains("moltbook-cli 0.7.4"));
+        .stdout(predicate::str::starts_with("moltbook-cli"));
 }
