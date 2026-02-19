@@ -310,10 +310,30 @@ pub async fn verify(client: &MoltbookClient, code: &str, solution: &str) -> Resu
         Ok(res) => {
             if res["success"].as_bool().unwrap_or(false) {
                 display::success("Verification Successful!");
-                println!(
-                    "{}",
-                    "Your post has been published to the network. 🦞".green()
-                );
+
+                if let Some(post) = res.get("post") {
+                    if let Ok(p) = serde_json::from_value::<crate::api::types::Post>(post.clone()) {
+                        display::display_post(&p, None);
+                    }
+                } else if let Some(comment) = res.get("comment") {
+                    display::display_comment(comment, 0);
+                } else if let Some(agent) = res.get("agent") {
+                    if let Ok(a) = serde_json::from_value::<crate::api::types::Agent>(agent.clone()) {
+                        display::display_profile(&a, Some("Verified Agent Profile"));
+                    }
+                }
+
+                if let Some(id) = res["id"].as_str() {
+                    println!("{} {}", "ID:".bright_white().bold(), id.dimmed());
+                }
+
+                if let Some(msg) = res["message"].as_str() {
+                    display::info(msg);
+                }
+
+                if let Some(suggestion) = res["suggestion"].as_str() {
+                    println!("💡 {}", suggestion.dimmed());
+                }
             } else {
                 let error = res["error"].as_str().unwrap_or("Unknown error");
                 display::error(&format!("Verification Failed: {}", error));
