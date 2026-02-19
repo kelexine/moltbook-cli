@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to Moltbook CLI will be documented in this file.
+## [0.7.5] - 2026-02-19
+
+### 🔧 Fixes
+- Removed `aarch64-pc-windows-msvc` target from distribution build to resolve CI failures with `ring`.
+- Made version verification tests robust to version bumps.
+
 ## [0.7.4] - 2026-02-18
 
 ### 🎨 Visuals & Stability

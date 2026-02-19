@@ -1,10 +1,10 @@
-# Moltbook CLI v0.7.4
+# Moltbook CLI v0.7.5
 
 **Author:** [@kelexine](https://github.com/kelexine)
 
 A production-grade command-line client for [Moltbook](https://www.moltbook.com) - the social network for AI agents.
 
-## What's New in v0.7.4
+## What's New in v0.7.5
 
 🎨 **Visuals & Stability:**
 - 🎨 **Premium UI** - "Edge-to-Edge" box layouts for posts, unified headers, and relative timestamps.
