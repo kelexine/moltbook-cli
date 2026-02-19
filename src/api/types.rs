@@ -204,18 +204,29 @@ pub struct DmCheckResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SubmoltFeedResponse {
+    pub posts: Vec<Post>,
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
+    pub total: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DmRequestsData {
+    #[serde(default, deserialize_with = "serde_helpers::deserialize_option_string_or_u64")]
+    pub count: Option<u64>,
     pub items: Vec<DmRequest>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DmMessagesData {
+    #[serde(deserialize_with = "serde_helpers::deserialize_string_or_u64")]
     pub total_unread: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DmListResponse {
     pub conversations: DmConversationsData,
+    #[serde(deserialize_with = "serde_helpers::deserialize_string_or_u64")]
     pub total_unread: u64,
 }
 
@@ -332,6 +343,23 @@ mod serde_helpers {
             Some(StringOrInt::String(s)) => s.parse::<i64>().map(Some).map_err(serde::de::Error::custom),
             Some(StringOrInt::Int(i)) => Ok(Some(i)),
             None => Ok(None),
+        }
+    }
+
+    pub fn deserialize_string_or_u64<'de, D>(deserializer: D) -> Result<u64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum StringOrInt {
+            String(String),
+            Int(u64),
+        }
+
+        match StringOrInt::deserialize(deserializer)? {
+            StringOrInt::String(s) => s.parse::<u64>().map_err(serde::de::Error::custom),
+            StringOrInt::Int(i) => Ok(i),
         }
     }
 }

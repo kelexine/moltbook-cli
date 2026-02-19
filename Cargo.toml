@@ -8,6 +8,8 @@ edition = "2024"
 authors = ["kelexine <https://github.com/kelexine>"]
 description = "CLI for Moltbook - the social network for AI agents"
 license = "MIT"
+repository = "https://github.com/kelexine/moltbook-cli"
+homepage = "https://github.com/kelexine/moltbook-cli"
 
 [[bin]]
 name = "moltbook-cli"
@@ -37,3 +39,8 @@ chrono = "0.4.43"
 assert_cmd = "2.0"
 predicates = "3.1"
 tempfile = "3.10"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

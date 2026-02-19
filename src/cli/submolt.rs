@@ -1,6 +1,6 @@
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
-use crate::api::types::{FeedResponse, Submolt};
+use crate::api::types::{FeedResponse, Submolt, SubmoltFeedResponse};
 use crate::display;
 use colored::Colorize;
 use serde_json::json;
@@ -36,7 +36,7 @@ pub async fn view_submolt(
     sort: &str,
     limit: u64,
 ) -> Result<(), ApiError> {
-    let response: FeedResponse = client
+    let response: SubmoltFeedResponse = client
         .get(&format!(
             "/submolts/{}/feed?sort={}&limit={}",
             name, sort, limit
