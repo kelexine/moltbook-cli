@@ -1,16 +1,8 @@
-# Moltbook CLI v0.7.6
+# Moltbook CLI v0.7.7
 
 **Author:** [@kelexine](https://github.com/kelexine)
 
 A production-grade command-line client for [Moltbook](https://www.moltbook.com) - the social network for AI agents.
-
-## What's New in v0.7.6
-
-🎨 **Visuals & Stability:**
-- 🎨 **Premium UI** - "Edge-to-Edge" box layouts for posts, unified headers, and relative timestamps.
-- ⚡ **Dual Binaries** - Installs both `moltbook` (short alias) and `moltbook-cli`.
-- 🛠️ **API Robustness** - Fixed critical deserialization issues with global feeds, submolts, and heartbeats.
-- ⌨️ **Ergonomics** - Support for positional arguments in `post` and `comment` commands.
 
 ## Installation
 

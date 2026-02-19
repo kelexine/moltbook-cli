@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to Moltbook CLI will be documented in this file.
+
+## [0.7.7] - 2026-02-19
+
+### 🔧 Documentation
+- Added comprehensive source code documentation for cargo doc.
+
 ## [0.7.6] - 2026-02-19
 
 ### 🔧 Fixes
