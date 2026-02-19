@@ -4,10 +4,11 @@ use colored::*;
 use terminal_size::{Width, terminal_size};
 
 fn get_term_width() -> usize {
-    if let Ok(cols) = std::env::var("COLUMNS") {
-        if let Ok(width) = cols.parse::<usize>() {
-            return width.saturating_sub(2).max(40);
-        }
+    if let Some(width) = std::env::var("COLUMNS")
+        .ok()
+        .and_then(|c| c.parse::<usize>().ok())
+    {
+        return width.saturating_sub(2).max(40);
     }
 
     if let Some((Width(w), _)) = terminal_size() {
@@ -99,7 +100,7 @@ pub fn display_post(post: &Post, index: Option<usize>) {
 
     let karma = post.author.karma.unwrap_or(0);
     let author = post.author.name.yellow();
-    
+
     // Handle submolt name fallback
     let sub_name = if let Some(s) = &post.submolt {
         &s.name
@@ -447,14 +448,12 @@ pub fn display_dm_request(req: &DmRequest) {
         format!("├{}┤", "─".repeat(width.saturating_sub(2))).dimmed()
     );
 
-    if let Some(owner) = &req.from.owner {
-        if let Some(handle) = &owner.x_handle {
-            println!(
-                "│ 👑 Owner: @{:<w$} │",
-                handle.blue(),
-                w = inner_width.saturating_sub(11)
-            );
-        }
+    if let Some(handle) = req.from.owner.as_ref().and_then(|o| o.x_handle.as_ref()) {
+        println!(
+            "│ 👑 Owner: @{:<w$} │",
+            handle.blue(),
+            w = inner_width.saturating_sub(14)
+        );
     }
 
     let wrapped = textwrap::fill(msg, inner_width.saturating_sub(2));

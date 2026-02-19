@@ -446,14 +446,16 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         } => {
             post::create_post(
                 client,
-                title,
-                content,
-                url,
-                submolt,
-                title_pos,
-                submolt_pos,
-                content_pos,
-                url_pos,
+                post::PostParams {
+                    title,
+                    content,
+                    url,
+                    submolt,
+                    title_pos,
+                    submolt_pos,
+                    content_pos,
+                    url_pos,
+                },
             )
             .await
         }

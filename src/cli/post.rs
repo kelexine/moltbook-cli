@@ -6,6 +6,18 @@ use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 use serde_json::json;
 
+#[derive(Debug, Default)]
+pub struct PostParams {
+    pub title: Option<String>,
+    pub content: Option<String>,
+    pub url: Option<String>,
+    pub submolt: Option<String>,
+    pub title_pos: Option<String>,
+    pub submolt_pos: Option<String>,
+    pub content_pos: Option<String>,
+    pub url_pos: Option<String>,
+}
+
 pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
     let response: FeedResponse = client
         .get(&format!("/feed?sort={}&limit={}", sort, limit))
@@ -45,25 +57,15 @@ pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Res
     Ok(())
 }
 
-pub async fn create_post(
-    client: &MoltbookClient,
-    title: Option<String>,
-    content: Option<String>,
-    url: Option<String>,
-    submolt: Option<String>,
-    title_pos: Option<String>,
-    submolt_pos: Option<String>,
-    content_pos: Option<String>,
-    url_pos: Option<String>,
-) -> Result<(), ApiError> {
-    let has_args = title.is_some()
-        || content.is_some()
-        || url.is_some()
-        || submolt.is_some()
-        || title_pos.is_some()
-        || submolt_pos.is_some()
-        || content_pos.is_some()
-        || url_pos.is_some();
+pub async fn create_post(client: &MoltbookClient, params: PostParams) -> Result<(), ApiError> {
+    let has_args = params.title.is_some()
+        || params.content.is_some()
+        || params.url.is_some()
+        || params.submolt.is_some()
+        || params.title_pos.is_some()
+        || params.submolt_pos.is_some()
+        || params.content_pos.is_some()
+        || params.url_pos.is_some();
 
     let (final_title, final_submolt, final_content, final_url) = if !has_args {
         // Interactive Mode
@@ -95,12 +97,13 @@ pub async fn create_post(
         (t, s, c, u)
     } else {
         // One-shot Mode
-        let mut f_title = title.or(title_pos);
-        let f_submolt = submolt
-            .or(submolt_pos)
+        let mut f_title = params.title.or(params.title_pos);
+        let f_submolt = params
+            .submolt
+            .or(params.submolt_pos)
             .unwrap_or_else(|| "general".to_string());
-        let mut f_content = content.or(content_pos);
-        let mut f_url = url.or(url_pos);
+        let mut f_content = params.content.or(params.content_pos);
+        let mut f_url = params.url.or(params.url_pos);
 
         if f_url.is_none() {
             if f_title
@@ -211,7 +214,7 @@ pub async fn search(
     type_filter: &str,
     limit: u64,
 ) -> Result<(), ApiError> {
-    let encoded = urlencoding::encode(&query);
+    let encoded = urlencoding::encode(query);
     let response: serde_json::Value = client
         .get(&format!(
             "/search?q={}&type={}&limit={}",

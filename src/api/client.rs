@@ -79,7 +79,7 @@ impl MoltbookClient {
             .to_string_lossy()
             .to_string();
 
-        let file_contents = std::fs::read(&file_path).map_err(|e| ApiError::IoError(e))?;
+        let file_contents = std::fs::read(&file_path).map_err(ApiError::IoError)?;
 
         let mime_type = from_path(&file_path).first_or_octet_stream();
         let part = reqwest::multipart::Part::bytes(file_contents)
