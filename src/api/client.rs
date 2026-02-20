@@ -137,6 +137,7 @@ impl MoltbookClient {
         self.handle_response(response).await
     }
 
+
     /// Performs a PATCH request with a JSON body.
     pub async fn patch<T: DeserializeOwned>(
         &self,

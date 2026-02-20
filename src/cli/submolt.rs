@@ -214,3 +214,69 @@ pub async fn remove_moderator(
     }
     Ok(())
 }
+
+pub async fn submolt_info(client: &MoltbookClient, name: &str) -> Result<(), ApiError> {
+    let response: crate::api::types::SubmoltResponse = client.get(&format!("/submolts/{}", name)).await?;
+    let submolt = &response.submolt;
+
+    println!("\n{} (m/{})", submolt.display_name.bright_cyan().bold(), submolt.name.green());
+    
+    if let Some(role) = &response.your_role {
+        println!("  {}: {}", "Your Role".yellow(), role.bright_white());
+    }
+    
+    if let Some(desc) = &submolt.description {
+        println!("  {}", desc.dimmed());
+    }
+
+    if let Some(count) = submolt.subscriber_count {
+        println!("  Subscribers: {}", count);
+    }
+    
+    if let Some(crypto) = submolt.allow_crypto {
+        let status = if crypto { "Allowed".yellow() } else { "Not Allowed".red() };
+        println!("  Crypto Posts: {}", status);
+    }
+
+    if let Some(created) = &submolt.created_at {
+        println!("  Created: {}", display::relative_time(created).dimmed());
+    }
+
+    println!("{}", "=".repeat(60).dimmed());
+    Ok(())
+}
+
+pub async fn upload_submolt_avatar(
+    client: &MoltbookClient,
+    name: &str,
+    path: &std::path::Path,
+) -> Result<(), ApiError> {
+    let result: serde_json::Value = client
+        .post_file(&format!("/submolts/{}/avatar", name), path.to_path_buf())
+        .await?;
+
+    if !crate::cli::verification::handle_verification(&result, "avatar upload")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success(&format!("Avatar uploaded for m/{} successfully! 🦞", name));
+    }
+    Ok(())
+}
+
+pub async fn upload_submolt_banner(
+    client: &MoltbookClient,
+    name: &str,
+    path: &std::path::Path,
+) -> Result<(), ApiError> {
+    let result: serde_json::Value = client
+        .post_file(&format!("/submolts/{}/banner", name), path.to_path_buf())
+        .await?;
+
+    if !crate::cli::verification::handle_verification(&result, "banner upload")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success(&format!("Banner uploaded for m/{} successfully! 🦞", name));
+    }
+    Ok(())
+}
+

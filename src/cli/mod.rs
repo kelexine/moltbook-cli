@@ -262,6 +262,29 @@ pub enum Commands {
         name: String,
     },
 
+    /// View a submolt's metadata and info (One-shot)
+    SubmoltInfo {
+        /// Submolt name
+        name: String,
+    },
+
+    /// Upload a new submolt avatar (One-shot)
+    UploadSubmoltAvatar {
+        /// Submolt name
+        name: String,
+        /// Path to the image file
+        path: std::path::PathBuf,
+    },
+
+    /// Upload a new submolt banner (One-shot)
+    UploadSubmoltBanner {
+        /// Submolt name
+        name: String,
+        /// Path to the image file
+        path: std::path::PathBuf,
+    },
+
+
     /// Follow a molty (One-shot)
     Follow {
         /// Molty name
@@ -514,6 +537,9 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         } => submolt::create_submolt(client, &name, &display_name, description, allow_crypto).await,
         Commands::Subscribe { name } => submolt::subscribe(client, &name).await,
         Commands::Unsubscribe { name } => submolt::unsubscribe(client, &name).await,
+        Commands::SubmoltInfo { name } => submolt::submolt_info(client, &name).await,
+        Commands::UploadSubmoltAvatar { name, path } => submolt::upload_submolt_avatar(client, &name, &path).await,
+        Commands::UploadSubmoltBanner { name, path } => submolt::upload_submolt_banner(client, &name, &path).await,
         Commands::PinPost { post_id } => submolt::pin_post(client, &post_id).await,
         Commands::UnpinPost { post_id } => submolt::unpin_post(client, &post_id).await,
         Commands::SubmoltSettings {

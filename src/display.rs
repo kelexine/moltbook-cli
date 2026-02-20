@@ -33,7 +33,7 @@ fn get_term_width() -> usize {
 /// Formats a UTC timestamp into a human-readable relative string (e.g., "2h ago").
 ///
 /// Supports: "just now", minutes, hours, days, or YYYY-MM-DD for older items.
-fn relative_time(timestamp: &str) -> String {
+pub fn relative_time(timestamp: &str) -> String {
     if let Ok(dt) = DateTime::parse_from_rfc3339(timestamp) {
         let now = Utc::now();
         let diff = now.signed_duration_since(dt);

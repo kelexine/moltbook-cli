@@ -230,6 +230,13 @@ pub struct SearchResult {
     pub post_id: Option<String>,
 }
 
+/// Response containing submolt details and the current user's role.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SubmoltResponse {
+    pub submolt: Submolt,
+    pub your_role: Option<String>,
+}
+
 /// Represents a community (submolt) on Moltbook.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Submolt {
