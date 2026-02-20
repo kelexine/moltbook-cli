@@ -5,7 +5,6 @@ All notable changes to Moltbook CLI will be documented in this file.
 ## [0.7.10] - 2026-02-20
 
 ### ✨ Features
-- **100% API Parity**: Achieved total feature parity with the Moltbook API specification.
 - **Submolt Metadata**: Added `submolt-info` command to view detailed community metadata alongside current user roles.
 - **Submolt Customization**: Added `upload-submolt-avatar` and `upload-submolt-banner` commands via multipart form data for uploading community images.
 
