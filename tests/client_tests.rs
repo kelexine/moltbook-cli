@@ -126,3 +126,18 @@ async fn test_captcha_required_error() {
         _ => panic!("Expected CaptchaRequired error, got {:?}", result),
     }
 }
+
+#[test]
+fn test_handle_verification_detects_challenge() {
+    use moltbook_cli::cli::verification::handle_verification;
+    let response = json!({
+        "post": {
+            "verification": {
+                "verification_code": "moltbook_verify_abc",
+                "challenge_text": "lobster swims at twenty...",
+                "instructions": "Solve the math problem..."
+            }
+        }
+    });
+    assert!(handle_verification(&response, "post"));
+}

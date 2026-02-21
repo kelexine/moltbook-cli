@@ -41,29 +41,14 @@ pub async fn register_agent(
             .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?,
     };
 
-    let client = reqwest::Client::new();
+    let client = MoltbookClient::new("".to_string(), false);
     let body = json!({
         "name": name,
         "description": description
     });
 
     display::info("Sending registration request...");
-    let response = client
-        .post("https://www.moltbook.com/api/v1/agents/register")
-        .header("Content-Type", "application/json")
-        .json(&body)
-        .send()
-        .await?;
-
-    if !response.status().is_success() {
-        let error_text = response.text().await?;
-        return Err(ApiError::MoltbookError(
-            "Registration failed".to_string(),
-            error_text,
-        ));
-    }
-
-    let reg_response: RegistrationResponse = response.json().await?;
+    let reg_response: RegistrationResponse = client.post_unauth("/agents/register", &body).await?;
     let agent = reg_response.agent;
 
     display::success("Registration Successful!");
@@ -211,13 +196,14 @@ pub async fn heartbeat(client: &MoltbookClient) -> Result<(), ApiError> {
     println!("{}", "💓 Heartbeat Consolidated Check".bright_red().bold());
     println!("{}", "━".repeat(60).bright_black());
 
-    let status_res: StatusResponse = client.get("/agents/status").await?;
+    let (status_res, dm, feed) = tokio::try_join!(
+        client.get::<StatusResponse>("/agents/status"),
+        client.get::<DmCheckResponse>("/agents/dm/check"),
+        client.get::<FeedResponse>("/feed?limit=3")
+    )?;
+
     display::display_status(&status_res);
-
-    let dm: DmCheckResponse = client.get("/agents/dm/check").await?;
     display::display_dm_check(&dm);
-
-    let feed: FeedResponse = client.get("/feed?limit=3").await?;
     println!("{}", "Recent Feed Highlights".bright_green().bold());
     if feed.posts.is_empty() {
         println!("{}", "No new posts.".dimmed());
@@ -230,54 +216,29 @@ pub async fn heartbeat(client: &MoltbookClient) -> Result<(), ApiError> {
 }
 
 pub async fn follow(client: &MoltbookClient, name: &str) -> Result<(), ApiError> {
-    let response: serde_json::Value = client
-        .get(&format!("/agents/profile?name={}", name))
+    let result: serde_json::Value = client
+        .post(&format!("/agents/{}/follow", name), &json!({}))
         .await?;
-    if let Some(agent) = response.get("agent") {
-        let resolved_name = agent["name"].as_str().ok_or(ApiError::MoltbookError(
-            "Agent name not found in profile".to_string(),
-            "".to_string(),
-        ))?;
-
-        let result: serde_json::Value = client
-            .post(&format!("/agents/{}/follow", resolved_name), &json!({}))
-            .await?;
-        if !crate::cli::verification::handle_verification(&result, "follow action")
-            && result["success"].as_bool().unwrap_or(false)
-        {
-            display::success(&format!("Now following {}", resolved_name));
-        } else if !result["success"].as_bool().unwrap_or(false) {
-            let error = result["error"].as_str().unwrap_or("Unknown error");
-            display::error(&format!("Failed to follow {}: {}", resolved_name, error));
-        }
-    } else {
-        display::error(&format!("Molty '{}' not found", name));
+    if !crate::cli::verification::handle_verification(&result, "follow action")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success(&format!("Now following {}", name));
+    } else if !result["success"].as_bool().unwrap_or(false) {
+        let error = result["error"].as_str().unwrap_or("Unknown error");
+        display::error(&format!("Failed to follow {}: {}", name, error));
     }
     Ok(())
 }
 
 pub async fn unfollow(client: &MoltbookClient, name: &str) -> Result<(), ApiError> {
-    let response: serde_json::Value = client
-        .get(&format!("/agents/profile?name={}", name))
-        .await?;
-    if let Some(agent) = response.get("agent") {
-        let resolved_name = agent["name"].as_str().ok_or(ApiError::MoltbookError(
-            "Agent name not found in profile".to_string(),
-            "".to_string(),
-        ))?;
-        let result: serde_json::Value = client
-            .delete(&format!("/agents/{}/follow", resolved_name))
-            .await?;
-        if !crate::cli::verification::handle_verification(&result, "unfollow action")
-            && result["success"].as_bool().unwrap_or(false)
-        {
-            display::success(&format!("Unfollowed {}", resolved_name));
-        } else if !result["success"].as_bool().unwrap_or(false) {
-            let error = result["error"].as_str().unwrap_or("Unknown error");
-            display::error(&format!("Failed to unfollow {}: {}", resolved_name, error));
-        }
-    } else {
-        display::error(&format!("Molty '{}' not found", name));
+    let result: serde_json::Value = client.delete(&format!("/agents/{}/follow", name)).await?;
+    if !crate::cli::verification::handle_verification(&result, "unfollow action")
+        && result["success"].as_bool().unwrap_or(false)
+    {
+        display::success(&format!("Unfollowed {}", name));
+    } else if !result["success"].as_bool().unwrap_or(false) {
+        let error = result["error"].as_str().unwrap_or("Unknown error");
+        display::error(&format!("Failed to unfollow {}: {}", name, error));
     }
     Ok(())
 }

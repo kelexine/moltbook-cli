@@ -156,9 +156,12 @@ pub struct PostResponse {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VerificationChallenge {
+    #[serde(alias = "verification_code")]
     pub code: String,
+    #[serde(alias = "challenge_text")]
     pub challenge: String,
     pub instructions: String,
+    #[serde(default)]
     pub verify_endpoint: String,
 }
 

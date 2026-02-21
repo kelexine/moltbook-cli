@@ -116,29 +116,13 @@ pub async fn create_post(client: &MoltbookClient, params: PostParams) -> Result<
         (t, s, c, u)
     } else {
         // One-shot Mode
-        let mut f_title = params.title.or(params.title_pos);
+        let f_title = params.title.or(params.title_pos);
         let f_submolt = params
             .submolt
             .or(params.submolt_pos)
             .unwrap_or_else(|| "general".to_string());
-        let mut f_content = params.content.or(params.content_pos);
-        let mut f_url = params.url.or(params.url_pos);
-
-        if f_url.is_none() {
-            if f_title
-                .as_ref()
-                .map(|s| s.starts_with("http"))
-                .unwrap_or(false)
-            {
-                f_url = f_title.take();
-            } else if f_content
-                .as_ref()
-                .map(|s| s.starts_with("http"))
-                .unwrap_or(false)
-            {
-                f_url = f_content.take();
-            }
-        }
+        let f_content = params.content.or(params.content_pos);
+        let f_url = params.url.or(params.url_pos);
 
         (
             f_title.unwrap_or_else(|| "Untitled Post".to_string()),
@@ -260,10 +244,8 @@ pub async fn comments(client: &MoltbookClient, post_id: &str, sort: &str) -> Res
     let response: serde_json::Value = client
         .get(&format!("/posts/{}/comments?sort={}", post_id, sort))
         .await?;
-    let comments = response["comments"]
-        .as_array()
-        .or(response.as_array())
-        .ok_or_else(|| ApiError::MoltbookError("Unexpected response format".into(), "".into()))?;
+    let empty_vec = vec![];
+    let comments = response["comments"].as_array().unwrap_or(&empty_vec);
 
     println!("\n{}", "Comments".bright_green().bold());
     println!("{}", "=".repeat(60));

@@ -10,6 +10,7 @@ use reqwest::Client;
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use std::path::PathBuf;
+use std::time::Duration;
 
 /// The default base URL for the Moltbook API.
 const DEFAULT_API_BASE: &str = "https://www.moltbook.com/api/v1";
@@ -34,7 +35,11 @@ impl MoltbookClient {
     /// * `debug` - If true, logs all requests and responses to stderr.
     pub fn new(api_key: String, debug: bool) -> Self {
         Self {
-            client: Client::new(),
+            client: Client::builder()
+                .timeout(Duration::from_secs(30))
+                .connect_timeout(Duration::from_secs(10))
+                .build()
+                .expect("Failed to build HTTP client"),
             api_key,
             debug,
             base_url: DEFAULT_API_BASE.to_string(),
@@ -93,6 +98,33 @@ impl MoltbookClient {
             .client
             .post(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(body)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    /// Performs an unauthenticated POST request with a JSON body.
+    pub async fn post_unauth<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+        body: &impl Serialize,
+    ) -> Result<T, ApiError> {
+        let url = format!("{}{}", self.base_url, endpoint);
+
+        if self.debug {
+            eprintln!("POST (unauth) {}", url);
+            eprintln!(
+                "Body: {}",
+                serde_json::to_string_pretty(&body).unwrap_or_default()
+            );
+        }
+
+        let response = self
+            .client
+            .post(&url)
             .header("Content-Type", "application/json")
             .json(body)
             .send()
