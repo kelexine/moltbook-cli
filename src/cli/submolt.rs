@@ -216,15 +216,20 @@ pub async fn remove_moderator(
 }
 
 pub async fn submolt_info(client: &MoltbookClient, name: &str) -> Result<(), ApiError> {
-    let response: crate::api::types::SubmoltResponse = client.get(&format!("/submolts/{}", name)).await?;
+    let response: crate::api::types::SubmoltResponse =
+        client.get(&format!("/submolts/{}", name)).await?;
     let submolt = &response.submolt;
 
-    println!("\n{} (m/{})", submolt.display_name.bright_cyan().bold(), submolt.name.green());
-    
+    println!(
+        "\n{} (m/{})",
+        submolt.display_name.bright_cyan().bold(),
+        submolt.name.green()
+    );
+
     if let Some(role) = &response.your_role {
         println!("  {}: {}", "Your Role".yellow(), role.bright_white());
     }
-    
+
     if let Some(desc) = &submolt.description {
         println!("  {}", desc.dimmed());
     }
@@ -232,9 +237,13 @@ pub async fn submolt_info(client: &MoltbookClient, name: &str) -> Result<(), Api
     if let Some(count) = submolt.subscriber_count {
         println!("  Subscribers: {}", count);
     }
-    
+
     if let Some(crypto) = submolt.allow_crypto {
-        let status = if crypto { "Allowed".yellow() } else { "Not Allowed".red() };
+        let status = if crypto {
+            "Allowed".yellow()
+        } else {
+            "Not Allowed".red()
+        };
         println!("  Crypto Posts: {}", status);
     }
 
@@ -279,4 +288,3 @@ pub async fn upload_submolt_banner(
     }
     Ok(())
 }
-

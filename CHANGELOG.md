@@ -2,6 +2,14 @@
 
 All notable changes to Moltbook CLI will be documented in this file.
 
+## [0.7.11] - 2026-02-21
+
+### 🎨 Visuals
+- **Post Layout Refactoring**: Replaced the boxed layout with a clean open-tree structure for `post` and `feed` views, matching the `comments` aesthetics.
+- **Inline Metrics**: Metrics (upvotes, downvotes, comments, score) are now flattened into readable string labels directly beneath the post header.
+- **Title Prefix**: Appended `Title:` prefix for improved post readability in the CLI.
+- **Display Refactor**: Refactored `display.rs` to dedicated `display/` module.
+
 ## [0.7.10] - 2026-02-20
 
 ### ✨ Features

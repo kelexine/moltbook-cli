@@ -42,29 +42,40 @@ pub struct Agent {
     /// Total number of followers this agent has.
     #[serde(
         default,
+        alias = "followerCount",
         deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
     )]
     pub follower_count: Option<u64>,
     /// Total number of agents this agent is following.
     #[serde(
         default,
+        alias = "followingCount",
         deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
     )]
     pub following_count: Option<u64>,
     /// Whether the agent identity has been claimed by a human owner.
+    #[serde(alias = "isClaimed")]
     pub is_claimed: Option<bool>,
     /// Indicates if the agent is currently active.
+    #[serde(alias = "isActive")]
     pub is_active: Option<bool>,
     /// Timestamp when the agent was created.
+    #[serde(alias = "createdAt")]
     pub created_at: Option<String>,
     /// Timestamp of the agent's last activity.
+    #[serde(alias = "lastActive")]
     pub last_active: Option<String>,
     /// Timestamp when the agent was claimed (if applicable).
+    #[serde(alias = "claimedAt")]
     pub claimed_at: Option<String>,
     /// The ID of the human owner who claimed this agent.
+    #[serde(alias = "ownerId")]
     pub owner_id: Option<String>,
     /// Detailed information about the human owner.
     pub owner: Option<OwnerInfo>,
+    /// URL to the agent's avatar image.
+    #[serde(alias = "avatarUrl")]
+    pub avatar_url: Option<String>,
     /// Aggregated activity statistics for the agent.
     pub stats: Option<AgentStats>,
     /// Arbitrary metadata associated with the agent.
@@ -182,6 +193,29 @@ pub struct Post {
     pub submolt: Option<SubmoltInfo>,
     /// The raw name of the submolt (used in API payloads).
     pub submolt_name: Option<String>,
+    /// Whether the current authenticated agent follows this author.
+    pub you_follow_author: Option<bool>,
+    /// Type of the post (e.g., text, link).
+    #[serde(rename = "type")]
+    pub post_type: Option<String>,
+    /// The ID of the author.
+    pub author_id: Option<String>,
+    /// Net score.
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_i64"
+    )]
+    pub score: Option<i64>,
+    /// Hotness score.
+    pub hot_score: Option<f64>,
+    /// Whether the post is pinned.
+    pub is_pinned: Option<bool>,
+    /// Whether the post is locked.
+    pub is_locked: Option<bool>,
+    /// Whether the post is deleted.
+    pub is_deleted: Option<bool>,
+    /// Timestamp when the post was last updated.
+    pub updated_at: Option<String>,
 }
 
 /// Simplified author information used in lists and feeds.
@@ -202,6 +236,7 @@ pub struct Author {
     )]
     pub follower_count: Option<u64>,
     pub owner: Option<OwnerInfo>,
+    pub avatar_url: Option<String>,
 }
 
 /// Metadata about a submolt context.
@@ -256,6 +291,20 @@ pub struct Submolt {
     pub subscriber_count: Option<u64>,
     /// Whether crypto-related content/tipping is allowed.
     pub allow_crypto: Option<bool>,
+    /// The ID of the agent who created this submolt.
+    pub creator_id: Option<String>,
+    /// The agent who created this submolt.
+    pub created_by: Option<Agent>,
+    /// Total number of posts in this submolt.
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub post_count: Option<u64>,
+    /// Whether this submolt is flagged as NSFW.
+    pub is_nsfw: Option<bool>,
+    /// Whether this submolt is private.
+    pub is_private: Option<bool>,
     /// Creation timestamp.
     pub created_at: Option<String>,
     /// Timestamp of the most recent activity in this community.
@@ -302,21 +351,18 @@ pub struct Message {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct FeedContext {
+    pub page: Option<u64>,
+    pub limit: Option<u64>,
+    pub total: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FeedResponse {
     pub success: bool,
     pub posts: Vec<Post>,
-    #[serde(
-        default,
-        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
-    )]
-    pub count: Option<u64>,
-    pub has_more: Option<bool>,
-    #[serde(
-        default,
-        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
-    )]
-    pub next_offset: Option<u64>,
-    pub authenticated: Option<bool>,
+    pub feed_type: Option<String>,
+    pub context: Option<FeedContext>,
 }
 
 /// Response from the search endpoint.

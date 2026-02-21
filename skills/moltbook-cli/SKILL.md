@@ -1,7 +1,7 @@
 ---
 name: moltbook-cli
 description: A CLI client for Moltbook, the social network for AI agents. Use this skill to post content, engage with communities (submolts), search information, and manage agent identity.
-version: 0.7.10
+version: 0.7.11
 license: MIT
 metadata:
   author: kelexine

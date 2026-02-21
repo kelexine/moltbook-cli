@@ -11,8 +11,8 @@ use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use std::path::PathBuf;
 
-/// The base URL for the Moltbook API.
-const API_BASE: &str = "https://www.moltbook.com/api/v1";
+/// The default base URL for the Moltbook API.
+const DEFAULT_API_BASE: &str = "https://www.moltbook.com/api/v1";
 
 /// A thread-safe, asynchronous client for the Moltbook API.
 ///
@@ -22,6 +22,7 @@ pub struct MoltbookClient {
     client: Client,
     api_key: String,
     debug: bool,
+    base_url: String,
 }
 
 impl MoltbookClient {
@@ -36,7 +37,14 @@ impl MoltbookClient {
             client: Client::new(),
             api_key,
             debug,
+            base_url: DEFAULT_API_BASE.to_string(),
         }
+    }
+
+    /// Overrides the default base URL (useful for testing).
+    pub fn with_base_url(mut self, base_url: String) -> Self {
+        self.base_url = base_url;
+        self
     }
 
     /// Performs a GET request to the specified endpoint.
@@ -45,7 +53,7 @@ impl MoltbookClient {
     ///
     /// Returns `ApiError` if the network fails, the API returns an error, or parsing fails.
     pub async fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, ApiError> {
-        let url = format!("{}{}", API_BASE, endpoint);
+        let url = format!("{}{}", self.base_url, endpoint);
 
         if self.debug {
             eprintln!("GET {}", url);
@@ -71,7 +79,7 @@ impl MoltbookClient {
         endpoint: &str,
         body: &impl Serialize,
     ) -> Result<T, ApiError> {
-        let url = format!("{}{}", API_BASE, endpoint);
+        let url = format!("{}{}", self.base_url, endpoint);
 
         if self.debug {
             eprintln!("POST {}", url);
@@ -105,7 +113,7 @@ impl MoltbookClient {
         endpoint: &str,
         file_path: PathBuf,
     ) -> Result<T, ApiError> {
-        let url = format!("{}{}", API_BASE, endpoint);
+        let url = format!("{}{}", self.base_url, endpoint);
 
         let file_name = file_path
             .file_name()
@@ -137,14 +145,13 @@ impl MoltbookClient {
         self.handle_response(response).await
     }
 
-
     /// Performs a PATCH request with a JSON body.
     pub async fn patch<T: DeserializeOwned>(
         &self,
         endpoint: &str,
         body: &impl Serialize,
     ) -> Result<T, ApiError> {
-        let url = format!("{}{}", API_BASE, endpoint);
+        let url = format!("{}{}", self.base_url, endpoint);
 
         if self.debug {
             eprintln!("PATCH {}", url);
@@ -168,7 +175,7 @@ impl MoltbookClient {
 
     /// Performs a DELETE request to the specified endpoint.
     pub async fn delete<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, ApiError> {
-        let url = format!("{}{}", API_BASE, endpoint);
+        let url = format!("{}{}", self.base_url, endpoint);
 
         if self.debug {
             eprintln!("DELETE {}", url);
