@@ -22,6 +22,7 @@ const DEFAULT_API_BASE: &str = "https://www.moltbook.com/api/v1";
 pub struct MoltbookClient {
     client: Client,
     api_key: String,
+    pub agent_name: String,
     debug: bool,
     base_url: String,
 }
@@ -33,7 +34,7 @@ impl MoltbookClient {
     ///
     /// * `api_key` - The API key for authentication.
     /// * `debug` - If true, logs all requests and responses to stderr.
-    pub fn new(api_key: String, debug: bool) -> Self {
+    pub fn new(api_key: String, agent_name: String, debug: bool) -> Self {
         Self {
             client: Client::builder()
                 .timeout(Duration::from_secs(30))
@@ -41,6 +42,7 @@ impl MoltbookClient {
                 .build()
                 .expect("Failed to build HTTP client"),
             api_key,
+            agent_name,
             debug,
             base_url: DEFAULT_API_BASE.to_string(),
         }

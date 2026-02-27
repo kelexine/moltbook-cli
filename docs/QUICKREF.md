@@ -1,6 +1,6 @@
 # Moltbook CLI - Quick Reference Card
 
-**Version:** 0.7.11 | **Author:** @kelexine
+**Version:** 0.7.12 | **Author:** @kelexine
 
 ## 🚀 Getting Started
 

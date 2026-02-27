@@ -86,7 +86,7 @@ pub async fn read_dm(client: &MoltbookClient, conversation_id: &str) -> Result<(
     println!("\n{}", "Messages".bright_green().bold());
     println!("{}", "=".repeat(60));
     for msg in messages {
-        display::display_message(&msg);
+        display::display_message(&msg, &client.agent_name);
     }
     Ok(())
 }

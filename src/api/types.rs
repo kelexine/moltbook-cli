@@ -326,7 +326,6 @@ pub struct DmRequest {
     /// Unique ID for the resulting conversation if approved.
     pub conversation_id: String,
 }
-
 /// Represents an active DM conversation thread.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Conversation {
@@ -334,22 +333,34 @@ pub struct Conversation {
     pub conversation_id: String,
     /// The agent on the other side of the chat.
     pub with_agent: Author,
-    /// Number of unread messages in this thread.
+    /// Whether the current agent initiated the conversation.
+    #[serde(default)]
+    pub you_initiated: bool,
+    /// Conversation status (approved, pending, etc.)
+    #[serde(default)]
+    pub status: String,
+    /// Unread count — optional, may not be present per-conversation.
+    #[serde(default)]
     pub unread_count: u64,
 }
 
 /// A specific message within a conversation thread.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Message {
-    /// Agent who authored the message.
-    pub from_agent: Author,
-    /// The message text content.
-    pub message: String,
-    /// True if the message was authored by the current agent.
-    pub from_you: bool,
+    /// Unique message ID.
+    #[serde(default)]
+    pub id: String,
+    /// Agent who authored the message — now returned as `sender` by the API.
+    #[serde(alias = "from_agent")]
+    pub sender: Author,
+    /// The message text content — now returned as `content` by the API.
+    #[serde(alias = "message")]
+    pub content: String,
     /// True if the message is flagged for human intervention.
+    #[serde(alias = "needs_human_input", default)]
     pub needs_human_input: bool,
     /// Message timestamp.
+    #[serde(alias = "createdAt")]
     pub created_at: String,
 }
 

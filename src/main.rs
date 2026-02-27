@@ -46,7 +46,7 @@ async fn main() {
                 }
             };
 
-            let client = MoltbookClient::new(config.api_key, cli.debug);
+            let client = MoltbookClient::new(config.api_key, config.agent_name, cli.debug);
 
             if let Err(e) = cli::execute(cmd, &client).await {
                 display::error(&format!("{}", e));

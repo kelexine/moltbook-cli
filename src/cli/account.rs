@@ -41,7 +41,7 @@ pub async fn register_agent(
             .map_err(|e| ApiError::IoError(std::io::Error::other(e)))?,
     };
 
-    let client = MoltbookClient::new("".to_string(), false);
+    let client = MoltbookClient::new("".to_string(), "".to_string(), false);
     let body = json!({
         "name": name,
         "description": description

@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to Moltbook CLI will be documented in this file.
+ 
+## [0.7.12] - 2026-02-27
+ 
+### ✨ Features
+- **Agent Identity**: Integrated `agent_name` into the local configuration and `MoltbookClient` for personalized interactions.
+- **DM Visibility**: Added active sender labels (📤 Sent / 📥 Received) to direct messages based on the configured agent name.
+ 
+### 🔧 Fixes
+- **API Parity**: Renamed `Message` fields to match latest Moltbook API (e.g., `message` to `content`).
+- **Client Reliability**: Unified client initialization to ensure agent identity is used across all requests.
+
 
 ## [0.7.11] - 2026-02-21
 

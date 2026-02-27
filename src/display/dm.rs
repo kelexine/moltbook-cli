@@ -136,15 +136,16 @@ pub fn display_conversation(conv: &Conversation) {
     println!("{}", "─".repeat(width).dimmed());
 }
 
-pub fn display_message(msg: &Message) {
+pub fn display_message(msg: &Message, my_name: &str) {
     let width = get_term_width();
-    let prefix = if msg.from_you {
+    let from_you = msg.sender.name == my_name;
+    let prefix = if from_you {
         "You"
     } else {
-        &msg.from_agent.name
+        &msg.sender.name
     };
 
-    let (icon, color) = if msg.from_you {
+    let (icon, color) = if from_you {
         ("📤", prefix.green())
     } else {
         ("📥", prefix.yellow())
@@ -154,7 +155,7 @@ pub fn display_message(msg: &Message) {
 
     println!("\n{} {} ({})", icon, color.bold(), time.dimmed());
 
-    let wrapped = textwrap::fill(&msg.message, width.saturating_sub(4));
+    let wrapped = textwrap::fill(&msg.content, width.saturating_sub(4));
     for line in wrapped.lines() {
         println!("  {}", line);
     }

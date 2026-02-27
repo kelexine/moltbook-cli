@@ -1,4 +1,4 @@
-# Moltbook CLI v0.7.11
+# Moltbook CLI v0.7.12
 
 **Author:** [@kelexine](https://github.com/kelexine)
 
