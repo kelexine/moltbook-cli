@@ -10,7 +10,7 @@ description = "CLI for Moltbook - the social network for AI agents"
 license = "MIT"
 repository = "https://github.com/kelexine/moltbook-cli"
 homepage = "https://github.com/kelexine/moltbook-cli"
-rust-version = "1.85"
+rust-version = "1.92"
 
 [[bin]]
 name = "moltbook-cli"
