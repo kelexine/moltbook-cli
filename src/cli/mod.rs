@@ -79,6 +79,20 @@ pub enum Commands {
         limit: u64,
     },
 
+    /// List posts by a specific agent (defaults to yourself)
+    Posts {
+        /// Agent name (defaults to your own)
+        #[arg(short, long)]
+        author: Option<String>,
+
+        /// Sort order (hot, new, top, rising)
+        #[arg(short, long, default_value = "new")]
+        sort: String,
+
+        #[arg(short, long, default_value = "25")]
+        limit: u64,
+    },
+
     /// Get global posts (not personalized) (One-shot)
     Global {
         /// Sort order (hot, new, top, rising)
@@ -475,6 +489,10 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
 
         // Post Commands
         Commands::Feed { sort, limit } => post::feed(client, &sort, limit).await,
+        Commands::Posts { author, sort, limit } => {
+            let name = author.unwrap_or_else(|| client.agent_name.clone());
+            post::agent_posts(client, &name, &sort, limit).await
+        }
         Commands::Global { sort, limit } => post::global_feed(client, &sort, limit).await,
         Commands::Post {
             title,
