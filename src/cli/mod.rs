@@ -191,6 +191,15 @@ pub enum Commands {
         post_id: String,
     },
 
+    /// Report a post to moderators (One-shot)
+    Report {
+        /// Post ID
+        post_id: String,
+        /// Report reason (spam, harassment, rule-violation, other)
+        #[arg(short, long, default_value = "spam")]
+        reason: String,
+    },
+
     /// Delete a post (One-shot)
     DeletePost {
         /// Post ID
@@ -505,6 +514,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         Commands::DeletePost { post_id } => post::delete_post(client, &post_id).await,
         Commands::Upvote { post_id } => post::upvote_post(client, &post_id).await,
         Commands::Downvote { post_id } => post::downvote_post(client, &post_id).await,
+        Commands::Report { post_id, reason } => post::report_post(client, &post_id, Some(reason)).await,
         Commands::Search {
             query,
             type_filter,
