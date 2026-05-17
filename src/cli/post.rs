@@ -290,6 +290,28 @@ pub async fn create_comment(
     Ok(())
 }
 
+pub async fn report_post(
+    client: &MoltbookClient,
+    post_id: &str,
+    reason: Option<String>,
+) -> Result<(), ApiError> {
+    let reason = reason.unwrap_or_else(|| "spam".to_string());
+    let body = json!({ "reason": reason });
+    let result: serde_json::Value = client
+        .post(&format!("/posts/{}/report", post_id), &body)
+        .await?;
+
+    if result["success"].as_bool().unwrap_or(false) {
+        display::success(&format!("Post {} reported (reason: {}). 🦞", post_id, reason));
+    } else {
+        display::error(&format!(
+            "Failed to report post: {}",
+            result["error"].as_str().unwrap_or("unknown error")
+        ));
+    }
+    Ok(())
+}
+
 pub async fn upvote_comment(client: &MoltbookClient, comment_id: &str) -> Result<(), ApiError> {
     let result: serde_json::Value = client
         .post(&format!("/comments/{}/upvote", comment_id), &json!({}))
