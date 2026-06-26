@@ -1,4 +1,5 @@
 pub mod dm;
+pub mod home;
 pub mod post;
 pub mod profile;
 pub mod search;
@@ -6,6 +7,7 @@ pub mod submolt;
 pub mod utils;
 
 pub use dm::{display_conversation, display_dm_check, display_dm_request, display_message};
+pub use home::{display_home, display_home_fallback};
 pub use post::{display_comment, display_post};
 pub use profile::{display_profile, display_status};
 pub use search::display_search_result;

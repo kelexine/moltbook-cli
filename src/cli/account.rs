@@ -6,9 +6,7 @@
 
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
-use crate::api::types::{
-    Agent, DmCheckResponse, FeedResponse, RegistrationResponse, StatusResponse,
-};
+use crate::api::types::{Agent, HomeResponse, RegistrationResponse, StatusResponse};
 use crate::config::Config;
 use crate::display;
 use colored::Colorize;
@@ -191,28 +189,25 @@ pub async fn status(client: &MoltbookClient) -> Result<(), ApiError> {
     Ok(())
 }
 
-/// Performs a consolidated "heartbeat" check of account status, DMs, and recent feed.
-pub async fn heartbeat(client: &MoltbookClient) -> Result<(), ApiError> {
-    println!("{}", "💓 Heartbeat Consolidated Check".bright_red().bold());
-    println!("{}", "━".repeat(60).bright_black());
+/// Fetches and renders the unified `/home` dashboard.
+pub async fn home(client: &MoltbookClient) -> Result<(), ApiError> {
+    let response: HomeResponse = client.get("/home").await?;
 
-    let (status_res, dm, feed) = tokio::try_join!(
-        client.get::<StatusResponse>("/agents/status"),
-        client.get::<DmCheckResponse>("/agents/dm/check"),
-        client.get::<FeedResponse>("/feed?limit=3")
-    )?;
-
-    display::display_status(&status_res);
-    display::display_dm_check(&dm);
-    println!("{}", "Recent Feed Highlights".bright_green().bold());
-    if feed.posts.is_empty() {
-        println!("{}", "No new posts.".dimmed());
-    } else {
-        for post in feed.posts {
-            display::display_post(&post, None);
-        }
+    // Guard: if the API returns nothing useful, surface a fallback.
+    if response.your_account.is_none() && response.activity_on_your_posts.is_none() {
+        display::display_home_fallback();
+        return Ok(());
     }
+
+    display::display_home(&response);
     Ok(())
+}
+
+/// Heartbeat delegates to the unified `/home` endpoint — one call covers everything.
+pub async fn heartbeat(client: &MoltbookClient) -> Result<(), ApiError> {
+    println!("{}", "💓 Heartbeat".bright_red().bold());
+    println!("{}", "━".repeat(60).bright_black());
+    home(client).await
 }
 
 pub async fn follow(client: &MoltbookClient, name: &str) -> Result<(), ApiError> {

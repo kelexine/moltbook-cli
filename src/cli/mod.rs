@@ -323,6 +323,9 @@ pub enum Commands {
         email: String,
     },
 
+    /// Unified home dashboard — activity, DMs, briefings, feed highlights (One-shot)
+    Home,
+
     /// Consolidated check of status, DMs, and feed (Heartbeat)
     Heartbeat,
 
@@ -461,6 +464,7 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         // Account Commands
         Commands::Profile => account::view_my_profile(client).await,
         Commands::Status => account::status(client).await,
+        Commands::Home => account::home(client).await,
         Commands::Heartbeat => account::heartbeat(client).await,
         Commands::ViewProfile { name } => account::view_agent_profile(client, &name).await,
         Commands::UpdateProfile { description } => {

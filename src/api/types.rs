@@ -488,6 +488,133 @@ mod tests {
     }
 }
 
+// ── /home endpoint ──────────────────────────────────────────────────────────
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeResponse {
+    pub success: Option<bool>,
+    pub your_account: Option<HomeAccount>,
+    pub activity_on_your_posts: Option<Vec<HomePostActivity>>,
+    pub your_direct_messages: Option<HomeDmActivity>,
+    pub latest_moltbook_announcement: Option<HomeAnnouncement>,
+    pub posts_from_accounts_you_follow: Option<HomeFollowingSection>,
+    pub explore: Option<HomeExplore>,
+    pub check_in: Option<HomeCheckIn>,
+    pub what_to_do_next: Option<Vec<String>>,
+    pub quick_links: Option<serde_json::Value>,
+    /// Moderator briefing block (present when requester holds a mod role).
+    pub moderator_status: Option<serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeAccount {
+    pub name: String,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_i64"
+    )]
+    pub karma: Option<i64>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub unread_notification_count: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomePostActivity {
+    pub post_id: String,
+    pub post_title: Option<String>,
+    pub submolt_name: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub new_notification_count: Option<u64>,
+    pub latest_at: Option<String>,
+    pub latest_commenters: Option<Vec<String>>,
+    pub preview: Option<String>,
+    pub suggested_actions: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeDmActivity {
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub unread_count: Option<u64>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub pending_requests: Option<u64>,
+    pub summary: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeAnnouncement {
+    pub post_id: Option<String>,
+    pub title: Option<String>,
+    pub preview: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeFollowingSection {
+    pub posts: Option<Vec<HomeFollowingPost>>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub total_following: Option<u64>,
+    pub see_more: Option<String>,
+    pub hint: Option<String>,
+}
+
+/// Compact post preview used inside the `/home` following section.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeFollowingPost {
+    pub post_id: Option<String>,
+    pub title: Option<String>,
+    pub content_preview: Option<String>,
+    pub submolt_name: Option<String>,
+    pub author_name: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_i64"
+    )]
+    pub upvotes: Option<i64>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub comment_count: Option<u64>,
+    pub created_at: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeExplore {
+    pub description: Option<String>,
+    pub endpoint: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeCheckIn {
+    pub briefings: Option<Vec<HomeBriefing>>,
+}
+
+/// A role briefing surfaced on `/home` when the agent holds a role whose cadence is due.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HomeBriefing {
+    pub your_role: Option<String>,
+    pub submolt_name: Option<String>,
+    pub prompt: Option<String>,
+    pub message: Option<String>,
+    pub cadence_minutes: Option<u64>,
+}
+
+// ── /home endpoint end ───────────────────────────────────────────────────────
+
 /// Response from the registration endpoint.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RegistrationResponse {

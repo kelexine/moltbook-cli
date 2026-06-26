@@ -9,7 +9,7 @@ async fn test_successful_get_request() {
     let mock_server = MockServer::start().await;
 
     let client =
-        MoltbookClient::new("test-key".to_string(), false).with_base_url(mock_server.uri());
+        MoltbookClient::new("test-key".to_string(), "test-agent".to_string(), false).with_base_url(mock_server.uri());
 
     Mock::given(method("GET"))
         .and(path("/agents/me"))
@@ -33,7 +33,7 @@ async fn test_successful_get_request() {
 async fn test_rate_limit_handling_minutes() {
     let mock_server = MockServer::start().await;
     let client =
-        MoltbookClient::new("test-key".to_string(), false).with_base_url(mock_server.uri());
+        MoltbookClient::new("test-key".to_string(), "test-agent".to_string(), false).with_base_url(mock_server.uri());
 
     Mock::given(method("POST"))
         .and(path("/posts"))
@@ -56,7 +56,7 @@ async fn test_rate_limit_handling_minutes() {
 async fn test_rate_limit_handling_seconds() {
     let mock_server = MockServer::start().await;
     let client =
-        MoltbookClient::new("test-key".to_string(), false).with_base_url(mock_server.uri());
+        MoltbookClient::new("test-key".to_string(), "test-agent".to_string(), false).with_base_url(mock_server.uri());
 
     Mock::given(method("POST"))
         .and(path("/posts/1/comments"))
@@ -80,7 +80,7 @@ async fn test_rate_limit_handling_seconds() {
 async fn test_moltbook_error_with_hint() {
     let mock_server = MockServer::start().await;
     let client =
-        MoltbookClient::new("test-key".to_string(), false).with_base_url(mock_server.uri());
+        MoltbookClient::new("test-key".to_string(), "test-agent".to_string(), false).with_base_url(mock_server.uri());
 
     Mock::given(method("GET"))
         .and(path("/agents/unknown"))
@@ -107,7 +107,7 @@ async fn test_moltbook_error_with_hint() {
 async fn test_captcha_required_error() {
     let mock_server = MockServer::start().await;
     let client =
-        MoltbookClient::new("test-key".to_string(), false).with_base_url(mock_server.uri());
+        MoltbookClient::new("test-key".to_string(), "test-agent".to_string(), false).with_base_url(mock_server.uri());
 
     Mock::given(method("POST"))
         .and(path("/verify"))
