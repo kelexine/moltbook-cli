@@ -56,6 +56,28 @@ pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(),
     Ok(())
 }
 
+/// Fetches and displays posts by a specific agent.
+pub async fn agent_posts(client: &MoltbookClient, author: &str, sort: &str, limit: u64) -> Result<(), ApiError> {
+    let encoded = urlencoding::encode(author);
+    let response: FeedResponse = client
+        .get(&format!("/posts?author={}&sort={}&limit={}", encoded, sort, limit))
+        .await?;
+    println!(
+        "\n{} {}",
+        "Posts by".bright_green().bold(),
+        author.bright_cyan().bold()
+    );
+    println!("{}", "=".repeat(60));
+    if response.posts.is_empty() {
+        display::info("No posts found.");
+    } else {
+        for (i, post) in response.posts.iter().enumerate() {
+            display::display_post(post, Some(i + 1));
+        }
+    }
+    Ok(())
+}
+
 /// Fetches and displays global posts from the entire network.
 pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
     let response: FeedResponse = client
