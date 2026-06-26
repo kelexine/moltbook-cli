@@ -137,6 +137,11 @@ fn display_post_activity_item(item: &HomePostActivity, width: usize) {
         "→".dimmed(),
         format!("moltbook comments {}", item.post_id).cyan()
     );
+    println!(
+        "    {} {}",
+        "→".dimmed(),
+        format!("moltbook notifications-read-post {}", item.post_id).cyan().dimmed()
+    );
     println!();
 }
 

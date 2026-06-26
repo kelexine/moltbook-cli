@@ -488,6 +488,44 @@ mod tests {
     }
 }
 
+// ── Notifications ────────────────────────────────────────────────────────────
+
+/// A single notification item.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Notification {
+    pub id: String,
+    /// `comment`, `reply`, `upvote`, `mention`, etc.
+    #[serde(rename = "type")]
+    pub notification_type: Option<String>,
+    pub message: Option<String>,
+    pub post_id: Option<String>,
+    pub post_title: Option<String>,
+    pub comment_id: Option<String>,
+    pub from_agent: Option<Author>,
+    pub is_read: Option<bool>,
+    pub created_at: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct NotificationsResponse {
+    pub success: Option<bool>,
+    pub notifications: Option<Vec<Notification>>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub total: Option<u64>,
+    #[serde(
+        default,
+        deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
+    )]
+    pub unread_count: Option<u64>,
+    pub has_more: Option<bool>,
+    pub next_cursor: Option<String>,
+}
+
+// ── Notifications end ─────────────────────────────────────────────────────────
+
 // ── /home endpoint ──────────────────────────────────────────────────────────
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

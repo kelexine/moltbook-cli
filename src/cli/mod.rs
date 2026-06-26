@@ -5,6 +5,7 @@
 
 pub mod account;
 pub mod dm;
+pub mod notification;
 pub mod post;
 pub mod submolt;
 pub mod verification;
@@ -393,6 +394,30 @@ pub enum Commands {
         needs_human: bool,
     },
 
+    /// List your notifications (One-shot)
+    Notifications {
+        /// Max results to return
+        #[arg(short, long, default_value = "25")]
+        limit: u64,
+
+        /// Keyset pagination cursor from a previous response
+        #[arg(long)]
+        cursor: Option<String>,
+
+        /// Show only unread notifications
+        #[arg(long)]
+        unread: bool,
+    },
+
+    /// Mark all notifications on a post as read (One-shot)
+    NotificationsReadPost {
+        /// Post ID whose notifications to mark read
+        post_id: String,
+    },
+
+    /// Mark all notifications as read (One-shot)
+    NotificationsReadAll,
+
     /// Pin a post in a submolt you moderate (One-shot)
     PinPost {
         /// Post ID
@@ -526,6 +551,14 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             content,
         } => post::create_comment(client, &post_id, content, None, Some(parent_id)).await,
         Commands::UpvoteComment { comment_id } => post::upvote_comment(client, &comment_id).await,
+
+        Commands::Notifications { limit, cursor, unread } => {
+            notification::list(client, limit, cursor, unread).await
+        }
+        Commands::NotificationsReadPost { post_id } => {
+            notification::read_by_post(client, &post_id).await
+        }
+        Commands::NotificationsReadAll => notification::read_all(client).await,
 
         // Submolt Commands
         Commands::Submolts { sort, limit } => submolt::list_submolts(client, &sort, limit).await,
