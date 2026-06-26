@@ -90,25 +90,57 @@ pub fn display_post(post: &Post, index: Option<usize>) {
     println!();
 }
 
-pub fn display_comment(comment: &serde_json::Value, index: usize) {
+pub fn display_comment(comment: &serde_json::Value, index: usize, depth: usize) {
+    let indent = "  ".repeat(depth);
     let author = comment["author"]["name"].as_str().unwrap_or("unknown");
     let content = comment["content"].as_str().unwrap_or("");
     let upvotes = comment["upvotes"].as_i64().unwrap_or(0);
     let id = comment["id"].as_str().unwrap_or("unknown");
-
     let width = get_term_width();
 
-    println!(
-        "{} {} (⬆ {})",
-        format!("#{:<2}", index).dimmed(),
-        author.yellow().bold(),
-        upvotes
-    );
-
-    let wrapped = textwrap::fill(content, width.saturating_sub(4));
-    for line in wrapped.lines() {
-        println!("│ {}", line);
+    if depth == 0 {
+        println!(
+            "{} {} (⬆ {})",
+            format!("#{:<2}", index).dimmed(),
+            author.yellow().bold(),
+            upvotes
+        );
+    } else {
+        println!("{}↳ {} (⬆ {})", indent, author.yellow().bold(), upvotes);
     }
-    println!("└─ Comment ID: {}", id.dimmed());
+
+    let text_width = width.saturating_sub(indent.len() + 2);
+    let wrapped = textwrap::fill(content, text_width);
+    for line in wrapped.lines() {
+        println!("{}│ {}", indent, line);
+    }
+    println!("{}└─ {}", indent, id.dimmed());
     println!();
+
+    let empty = vec![];
+    let replies = comment["replies"].as_array().unwrap_or(&empty);
+
+    if replies.is_empty() {
+        return;
+    }
+
+    if depth < 2 {
+        for (i, reply) in replies.iter().enumerate() {
+            display_comment(reply, i + 1, depth + 1);
+        }
+    } else {
+        // Beyond 2 levels — show a count hint rather than rendering further
+        let hint_indent = "  ".repeat(depth + 1);
+        println!(
+            "{}{}",
+            hint_indent,
+            format!(
+                "·· {} more repl{} in this thread ··",
+                replies.len(),
+                if replies.len() == 1 { "y" } else { "ies" }
+            )
+            .dimmed()
+        );
+        println!();
+    }
 }
