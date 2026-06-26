@@ -266,7 +266,7 @@ pub async fn verify(client: &MoltbookClient, code: &str, solution: &str) -> Resu
                         display::display_post(&p, None);
                     }
                 } else if let Some(comment) = res.get("comment") {
-                    display::display_comment(comment, 0);
+                    display::display_comment(comment, 0, 0);
                 } else if let Some(agent) = res.get("agent")
                     && let Ok(a) = serde_json::from_value::<crate::api::types::Agent>(agent.clone())
                 {

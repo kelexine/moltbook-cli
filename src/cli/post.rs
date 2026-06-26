@@ -332,7 +332,7 @@ pub async fn comments(
         display::info("No comments yet. Be the first!");
     } else {
         for (i, comment) in comments.iter().enumerate() {
-            display::display_comment(comment, i + 1);
+            display::display_comment(comment, i + 1, 0);
         }
         if response["has_more"].as_bool().unwrap_or(false) {
             if let Some(next) = response["next_cursor"].as_str() {
