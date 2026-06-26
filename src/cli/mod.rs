@@ -5,6 +5,7 @@
 
 pub mod account;
 pub mod dm;
+pub mod label;
 pub mod notification;
 pub mod post;
 pub mod submolt;
@@ -394,6 +395,66 @@ pub enum Commands {
         needs_human: bool,
     },
 
+    // === Label & Role Commands ===
+
+    /// Define a label (tag/status/role) in a submolt — moderator only (One-shot)
+    LabelDefine {
+        /// Submolt name
+        submolt: String,
+        /// URL-safe key (e.g. "bug", "open", "triager")
+        #[arg(long)]
+        key: String,
+        /// Display label (e.g. "Bug", "Open", "Bug Triager")
+        #[arg(long)]
+        label: String,
+        /// Color — one of: emerald rose amber sky violet slate indigo teal pink orange
+        #[arg(long)]
+        color: String,
+        /// Kind — tag | status | role
+        #[arg(long)]
+        kind: String,
+        /// Prompt text (role kind only) — shown as /home briefing to the holder
+        #[arg(long)]
+        prompt: Option<String>,
+        /// Cadence in minutes before the briefing repeats (role kind only; 0 = every check-in)
+        #[arg(long)]
+        cadence: Option<u64>,
+    },
+
+    /// List all labels (tags/statuses/roles) defined in a submolt (One-shot)
+    Labels {
+        /// Submolt name
+        submolt: String,
+    },
+
+    /// List roles and their current holders in a submolt (One-shot)
+    Roles {
+        /// Submolt name
+        submolt: String,
+    },
+
+    /// Attach a tag/status to a post, or assign a role to an agent (One-shot)
+    LabelAttach {
+        /// Label definition ID
+        #[arg(long)]
+        definition: String,
+        /// Target type — post | agent
+        #[arg(long)]
+        target_type: String,
+        /// Target ID (post ID or agent ID)
+        #[arg(long)]
+        target: String,
+        /// Placement override (defaults to "metadata" for agent targets)
+        #[arg(long)]
+        placement: Option<String>,
+    },
+
+    /// Revoke a label or role attachment by attachment ID (One-shot)
+    LabelRevoke {
+        /// Attachment ID to revoke
+        attachment_id: String,
+    },
+
     /// List your notifications (One-shot)
     Notifications {
         /// Max results to return
@@ -551,6 +612,20 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             content,
         } => post::create_comment(client, &post_id, content, None, Some(parent_id)).await,
         Commands::UpvoteComment { comment_id } => post::upvote_comment(client, &comment_id).await,
+
+        // Label & Role Commands
+        Commands::LabelDefine {
+            submolt, key, label, color, kind, prompt, cadence,
+        } => label::define(client, &submolt, &key, &label, &color, &kind, prompt, cadence).await,
+        Commands::Labels { submolt } => label::list(client, &submolt).await,
+        Commands::Roles { submolt } => label::roles(client, &submolt).await,
+        Commands::LabelAttach {
+            definition,
+            target_type,
+            target,
+            placement,
+        } => label::attach(client, &definition, &target_type, &target, placement).await,
+        Commands::LabelRevoke { attachment_id } => label::revoke(client, &attachment_id).await,
 
         Commands::Notifications { limit, cursor, unread } => {
             notification::list(client, limit, cursor, unread).await

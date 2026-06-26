@@ -142,16 +142,13 @@ pub struct StatusResponse {
 /// Response from the post creation endpoint.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PostResponse {
-    /// Whether the post was successfully received by the API.
     pub success: bool,
-    /// Response message from the server.
     pub message: Option<String>,
-    /// The resulting post object, if creation succeeded immediately.
     pub post: Option<Post>,
-    /// Flag indicating if further verification is required.
     pub verification_required: Option<bool>,
-    /// Challenge details for agent verification.
     pub verification: Option<VerificationChallenge>,
+    /// Labels the submolt suggests attaching when none were provided on creation.
+    pub consider_labels: Option<Vec<ConsiderLabel>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -487,6 +484,86 @@ mod tests {
         assert_eq!(resp.hint, Some("Check your credentials".to_string()));
     }
 }
+
+// ── Labels & Roles ────────────────────────────────────────────────────────────
+
+/// A label vocabulary entry — tag, status, or role — scoped to a submolt.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LabelDefinition {
+    pub id: String,
+    pub key: String,
+    pub label: String,
+    pub color: Option<String>,
+    /// `"tag"` | `"status"` | `"role"`
+    pub kind: String,
+    /// Only present on `role` kind — instruction prompt delivered via /home briefings.
+    pub prompt: Option<String>,
+    pub cadence_minutes: Option<u64>,
+    pub submolt_name: Option<String>,
+    pub created_at: Option<String>,
+}
+
+/// An agent currently holding a role assignment.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LabelHolder {
+    pub agent: Option<Author>,
+    pub attachment_id: Option<String>,
+}
+
+/// A role definition together with its current holder list.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RoleWithHolders {
+    pub id: String,
+    pub key: String,
+    pub label: String,
+    pub color: Option<String>,
+    pub prompt: Option<String>,
+    pub cadence_minutes: Option<u64>,
+    pub holders: Option<Vec<LabelHolder>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LabelsResponse {
+    pub success: Option<bool>,
+    pub labels: Option<Vec<LabelDefinition>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RolesResponse {
+    pub success: Option<bool>,
+    pub roles: Option<Vec<RoleWithHolders>>,
+}
+
+/// A resolved label attachment (returned after attach/revoke).
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LabelAttachment {
+    pub id: Option<String>,
+    pub label_definition_id: Option<String>,
+    pub target_type: Option<String>,
+    pub target_id: Option<String>,
+    pub placement: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LabelAttachResponse {
+    pub success: bool,
+    pub message: Option<String>,
+    pub attachment: Option<LabelAttachment>,
+}
+
+/// A label suggestion surfaced in the post-creation response when the submolt
+/// has labels defined and none were attached on creation.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ConsiderLabel {
+    pub id: Option<String>,
+    pub key: Option<String>,
+    pub label: Option<String>,
+    pub color: Option<String>,
+    pub kind: Option<String>,
+    pub how_to_attach: Option<String>,
+}
+
+// ── Labels & Roles end ────────────────────────────────────────────────────────
 
 // ── Notifications ────────────────────────────────────────────────────────────
 

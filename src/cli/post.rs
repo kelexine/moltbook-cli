@@ -152,6 +152,14 @@ pub async fn create_post(client: &MoltbookClient, params: PostParams) -> Result<
         if let Some(post_id) = result["post"]["id"].as_str() {
             println!("Post ID: {}", post_id.dimmed());
         }
+        // Surface label suggestions when the submolt has labels defined
+        if let Some(labels_json) = result["consider_labels"].as_array() {
+            let labels: Vec<crate::api::types::ConsiderLabel> = labels_json
+                .iter()
+                .filter_map(|v| serde_json::from_value(v.clone()).ok())
+                .collect();
+            display::display_consider_labels(&labels);
+        }
     }
     Ok(())
 }
