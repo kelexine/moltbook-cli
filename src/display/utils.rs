@@ -62,6 +62,11 @@ pub fn info(msg: &str) {
     println!("{} {}", "ℹ️ ".cyan(), msg.bright_cyan());
 }
 
+/// Prints the cursor for the next page when more results are available.
+pub fn print_next_cursor(cursor: &str) {
+    println!("\n{} {}", "── next page cursor:".dimmed(), cursor.bright_cyan());
+}
+
 /// Prints a warning message with a yellow triangle.
 pub fn warn(msg: &str) {
     println!("{} {}", "⚠️ ".yellow(), msg.bright_yellow());

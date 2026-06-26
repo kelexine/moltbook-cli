@@ -42,13 +42,13 @@ pub async fn view_submolt(
     name: &str,
     sort: &str,
     limit: u64,
+    cursor: Option<&str>,
 ) -> Result<(), ApiError> {
-    let response: SubmoltFeedResponse = client
-        .get(&format!(
-            "/submolts/{}/feed?sort={}&limit={}",
-            name, sort, limit
-        ))
-        .await?;
+    let mut url = format!("/submolts/{}/feed?sort={}&limit={}", name, sort, limit);
+    if let Some(c) = cursor {
+        url.push_str(&format!("&cursor={}", urlencoding::encode(c)));
+    }
+    let response: SubmoltFeedResponse = client.get(&url).await?;
     println!("\nSubmolt m/{} ({})", name, sort);
     println!("{}", "=".repeat(60));
     if response.posts.is_empty() {
@@ -56,6 +56,11 @@ pub async fn view_submolt(
     } else {
         for (i, post) in response.posts.iter().enumerate() {
             display::display_post(post, Some(i + 1));
+        }
+        if response.has_more.unwrap_or(false) {
+            if let Some(next) = &response.next_cursor {
+                display::print_next_cursor(next);
+            }
         }
     }
     Ok(())

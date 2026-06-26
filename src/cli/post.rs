@@ -5,7 +5,7 @@
 
 use crate::api::client::MoltbookClient;
 use crate::api::error::ApiError;
-use crate::api::types::{FeedResponse, Post, SearchResult};
+use crate::api::types::{FeedResponse, Post, SearchResponse};
 use crate::display;
 use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
@@ -33,10 +33,21 @@ pub struct PostParams {
 }
 
 /// Fetches and displays the agent's personalized feed.
-pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
-    let response: FeedResponse = client
-        .get(&format!("/feed?sort={}&limit={}", sort, limit))
-        .await?;
+pub async fn feed(
+    client: &MoltbookClient,
+    sort: &str,
+    limit: u64,
+    filter: &str,
+    cursor: Option<&str>,
+) -> Result<(), ApiError> {
+    let mut url = format!("/feed?sort={}&limit={}", sort, limit);
+    if filter != "all" {
+        url.push_str(&format!("&filter={}", filter));
+    }
+    if let Some(c) = cursor {
+        url.push_str(&format!("&cursor={}", urlencoding::encode(c)));
+    }
+    let response: FeedResponse = client.get(&url).await?;
     println!("\n{} ({})", "Your Feed".bright_green().bold(), sort);
     println!("{}", "=".repeat(60));
     if response.posts.is_empty() {
@@ -52,16 +63,29 @@ pub async fn feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(),
         for (i, post) in response.posts.iter().enumerate() {
             display::display_post(post, Some(i + 1));
         }
+        if response.has_more.unwrap_or(false) {
+            if let Some(next) = &response.next_cursor {
+                display::print_next_cursor(next);
+            }
+        }
     }
     Ok(())
 }
 
 /// Fetches and displays posts by a specific agent.
-pub async fn agent_posts(client: &MoltbookClient, author: &str, sort: &str, limit: u64) -> Result<(), ApiError> {
+pub async fn agent_posts(
+    client: &MoltbookClient,
+    author: &str,
+    sort: &str,
+    limit: u64,
+    cursor: Option<&str>,
+) -> Result<(), ApiError> {
     let encoded = urlencoding::encode(author);
-    let response: FeedResponse = client
-        .get(&format!("/posts?author={}&sort={}&limit={}", encoded, sort, limit))
-        .await?;
+    let mut url = format!("/posts?author={}&sort={}&limit={}", encoded, sort, limit);
+    if let Some(c) = cursor {
+        url.push_str(&format!("&cursor={}", urlencoding::encode(c)));
+    }
+    let response: FeedResponse = client.get(&url).await?;
     println!(
         "\n{} {}",
         "Posts by".bright_green().bold(),
@@ -74,15 +98,27 @@ pub async fn agent_posts(client: &MoltbookClient, author: &str, sort: &str, limi
         for (i, post) in response.posts.iter().enumerate() {
             display::display_post(post, Some(i + 1));
         }
+        if response.has_more.unwrap_or(false) {
+            if let Some(next) = &response.next_cursor {
+                display::print_next_cursor(next);
+            }
+        }
     }
     Ok(())
 }
 
 /// Fetches and displays global posts from the entire network.
-pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Result<(), ApiError> {
-    let response: FeedResponse = client
-        .get(&format!("/posts?sort={}&limit={}", sort, limit))
-        .await?;
+pub async fn global_feed(
+    client: &MoltbookClient,
+    sort: &str,
+    limit: u64,
+    cursor: Option<&str>,
+) -> Result<(), ApiError> {
+    let mut url = format!("/posts?sort={}&limit={}", sort, limit);
+    if let Some(c) = cursor {
+        url.push_str(&format!("&cursor={}", urlencoding::encode(c)));
+    }
+    let response: FeedResponse = client.get(&url).await?;
     println!("\n{} ({})", "Global Feed".bright_green().bold(), sort);
     println!("{}", "=".repeat(60));
     if response.posts.is_empty() {
@@ -90,6 +126,11 @@ pub async fn global_feed(client: &MoltbookClient, sort: &str, limit: u64) -> Res
     } else {
         for (i, post) in response.posts.iter().enumerate() {
             display::display_post(post, Some(i + 1));
+        }
+        if response.has_more.unwrap_or(false) {
+            if let Some(next) = &response.next_cursor {
+                display::print_next_cursor(next);
+            }
         }
     }
     Ok(())
@@ -240,19 +281,14 @@ pub async fn search(
     query: &str,
     type_filter: &str,
     limit: u64,
+    cursor: Option<&str>,
 ) -> Result<(), ApiError> {
     let encoded = urlencoding::encode(query);
-    let response: serde_json::Value = client
-        .get(&format!(
-            "/search?q={}&type={}&limit={}",
-            encoded, type_filter, limit
-        ))
-        .await?;
-    let results: Vec<SearchResult> = if let Some(r) = response.get("results") {
-        serde_json::from_value(r.clone())?
-    } else {
-        serde_json::from_value(response)?
-    };
+    let mut url = format!("/search?q={}&type={}&limit={}", encoded, type_filter, limit);
+    if let Some(c) = cursor {
+        url.push_str(&format!("&cursor={}", urlencoding::encode(c)));
+    }
+    let response: SearchResponse = client.get(&url).await?;
 
     println!(
         "\n{} '{}'",
@@ -260,20 +296,33 @@ pub async fn search(
         query.bright_cyan()
     );
     println!("{}", "=".repeat(60));
-    if results.is_empty() {
+    if response.results.is_empty() {
         display::info("No results found.");
     } else {
-        for (i, res) in results.iter().enumerate() {
+        for (i, res) in response.results.iter().enumerate() {
             display::display_search_result(res, i + 1);
+        }
+        if response.has_more.unwrap_or(false) {
+            if let Some(next) = &response.next_cursor {
+                display::print_next_cursor(next);
+            }
         }
     }
     Ok(())
 }
 
-pub async fn comments(client: &MoltbookClient, post_id: &str, sort: &str) -> Result<(), ApiError> {
-    let response: serde_json::Value = client
-        .get(&format!("/posts/{}/comments?sort={}", post_id, sort))
-        .await?;
+pub async fn comments(
+    client: &MoltbookClient,
+    post_id: &str,
+    sort: &str,
+    limit: u64,
+    cursor: Option<&str>,
+) -> Result<(), ApiError> {
+    let mut url = format!("/posts/{}/comments?sort={}&limit={}", post_id, sort, limit);
+    if let Some(c) = cursor {
+        url.push_str(&format!("&cursor={}", urlencoding::encode(c)));
+    }
+    let response: serde_json::Value = client.get(&url).await?;
     let empty_vec = vec![];
     let comments = response["comments"].as_array().unwrap_or(&empty_vec);
 
@@ -284,6 +333,11 @@ pub async fn comments(client: &MoltbookClient, post_id: &str, sort: &str) -> Res
     } else {
         for (i, comment) in comments.iter().enumerate() {
             display::display_comment(comment, i + 1);
+        }
+        if response["has_more"].as_bool().unwrap_or(false) {
+            if let Some(next) = response["next_cursor"].as_str() {
+                display::print_next_cursor(next);
+            }
         }
     }
     Ok(())

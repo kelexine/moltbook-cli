@@ -79,6 +79,14 @@ pub enum Commands {
 
         #[arg(short, long, default_value = "25")]
         limit: u64,
+
+        /// Filter: all (default) | following
+        #[arg(long, default_value = "all")]
+        filter: String,
+
+        /// Pagination cursor from a previous response
+        #[arg(long)]
+        cursor: Option<String>,
     },
 
     /// List posts by a specific agent (defaults to yourself)
@@ -93,6 +101,10 @@ pub enum Commands {
 
         #[arg(short, long, default_value = "25")]
         limit: u64,
+
+        /// Pagination cursor from a previous response
+        #[arg(long)]
+        cursor: Option<String>,
     },
 
     /// Get global posts (not personalized) (One-shot)
@@ -103,6 +115,10 @@ pub enum Commands {
 
         #[arg(short, long, default_value = "25")]
         limit: u64,
+
+        /// Pagination cursor from a previous response
+        #[arg(long)]
+        cursor: Option<String>,
     },
 
     /// Create a new post (One-shot)
@@ -151,6 +167,10 @@ pub enum Commands {
 
         #[arg(short, long, default_value = "25")]
         limit: u64,
+
+        /// Pagination cursor from a previous response
+        #[arg(long)]
+        cursor: Option<String>,
     },
 
     /// View a specific post (One-shot)
@@ -164,9 +184,16 @@ pub enum Commands {
         /// Post ID
         post_id: String,
 
-        /// Sort order (top, new, controversial)
-        #[arg(short, long, default_value = "top")]
+        /// Sort order (best, new, old)
+        #[arg(short, long, default_value = "best")]
         sort: String,
+
+        #[arg(short, long, default_value = "35")]
+        limit: u64,
+
+        /// Pagination cursor from a previous response
+        #[arg(long)]
+        cursor: Option<String>,
     },
 
     /// Comment on a post (One-shot)
@@ -249,6 +276,10 @@ pub enum Commands {
 
         #[arg(short, long, default_value = "20")]
         limit: u64,
+
+        /// Pagination cursor from a previous response
+        #[arg(long)]
+        cursor: Option<String>,
     },
 
     /// List all submolts (One-shot)
@@ -587,12 +618,16 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         Commands::Verify { code, solution } => account::verify(client, &code, &solution).await,
 
         // Post Commands
-        Commands::Feed { sort, limit } => post::feed(client, &sort, limit).await,
-        Commands::Posts { author, sort, limit } => {
-            let name = author.unwrap_or_else(|| client.agent_name.clone());
-            post::agent_posts(client, &name, &sort, limit).await
+        Commands::Feed { sort, limit, filter, cursor } => {
+            post::feed(client, &sort, limit, &filter, cursor.as_deref()).await
         }
-        Commands::Global { sort, limit } => post::global_feed(client, &sort, limit).await,
+        Commands::Posts { author, sort, limit, cursor } => {
+            let name = author.unwrap_or_else(|| client.agent_name.clone());
+            post::agent_posts(client, &name, &sort, limit, cursor.as_deref()).await
+        }
+        Commands::Global { sort, limit, cursor } => {
+            post::global_feed(client, &sort, limit, cursor.as_deref()).await
+        }
         Commands::Post {
             title,
             content,
@@ -627,8 +662,11 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
             query,
             type_filter,
             limit,
-        } => post::search(client, &query, &type_filter, limit).await,
-        Commands::Comments { post_id, sort } => post::comments(client, &post_id, &sort).await,
+            cursor,
+        } => post::search(client, &query, &type_filter, limit, cursor.as_deref()).await,
+        Commands::Comments { post_id, sort, limit, cursor } => {
+            post::comments(client, &post_id, &sort, limit, cursor.as_deref()).await
+        }
         Commands::Comment {
             post_id,
             content,
@@ -665,8 +703,8 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
 
         // Submolt Commands
         Commands::Submolts { sort, limit } => submolt::list_submolts(client, &sort, limit).await,
-        Commands::Submolt { name, sort, limit } => {
-            submolt::view_submolt(client, &name, &sort, limit).await
+        Commands::Submolt { name, sort, limit, cursor } => {
+            submolt::view_submolt(client, &name, &sort, limit, cursor.as_deref()).await
         }
         Commands::CreateSubmolt {
             name,

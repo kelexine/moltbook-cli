@@ -16,4 +16,4 @@ pub use post::{display_comment, display_post};
 pub use profile::{display_profile, display_status};
 pub use search::display_search_result;
 pub use submolt::display_submolt;
-pub use utils::{error, get_term_width, info, relative_time, success, warn};
+pub use utils::{error, get_term_width, info, print_next_cursor, relative_time, success, warn};

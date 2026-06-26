@@ -374,13 +374,17 @@ pub struct FeedResponse {
     pub posts: Vec<Post>,
     pub feed_type: Option<String>,
     pub context: Option<FeedContext>,
+    pub has_more: Option<bool>,
+    pub next_cursor: Option<String>,
 }
 
 /// Response from the search endpoint.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SearchResponse {
-    /// A list of posts or comments matching the search query.
     pub results: Vec<SearchResult>,
+    pub count: Option<u64>,
+    pub has_more: Option<bool>,
+    pub next_cursor: Option<String>,
 }
 
 /// Response containing a list of communities.
@@ -406,14 +410,14 @@ pub struct DmCheckResponse {
 /// Paginated response for a submolt feed.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SubmoltFeedResponse {
-    /// Array of posts in this submolt.
     pub posts: Vec<Post>,
-    /// Total number of posts available in this community.
     #[serde(
         default,
         deserialize_with = "serde_helpers::deserialize_option_string_or_u64"
     )]
     pub total: Option<u64>,
+    pub has_more: Option<bool>,
+    pub next_cursor: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
