@@ -160,6 +160,7 @@ pub struct VerificationChallenge {
     pub instructions: String,
     #[serde(default)]
     pub verify_endpoint: String,
+    pub expires_at: Option<String>,
 }
 
 /// Represents a single post in a feed or submolt.

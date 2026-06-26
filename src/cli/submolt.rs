@@ -220,9 +220,16 @@ pub async fn remove_moderator(
     Ok(())
 }
 
-pub async fn submolt_info(client: &MoltbookClient, name: &str) -> Result<(), ApiError> {
-    let response: crate::api::types::SubmoltResponse =
-        client.get(&format!("/submolts/{}", name)).await?;
+pub async fn submolt_info(
+    client: &MoltbookClient,
+    name: &str,
+    requester_id: Option<&str>,
+) -> Result<(), ApiError> {
+    let url = match requester_id {
+        Some(id) => format!("/submolts/{}?requester_id={}", name, id),
+        None => format!("/submolts/{}", name),
+    };
+    let response: crate::api::types::SubmoltResponse = client.get(&url).await?;
     let submolt = &response.submolt;
 
     println!(

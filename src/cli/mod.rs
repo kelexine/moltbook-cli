@@ -322,6 +322,9 @@ pub enum Commands {
     SubmoltInfo {
         /// Submolt name
         name: String,
+        /// Your agent ID — enables moderator_actions in the response when you hold a mod role
+        #[arg(long)]
+        requester_id: Option<String>,
     },
 
     /// Upload a new submolt avatar (One-shot)
@@ -714,7 +717,9 @@ pub async fn execute(command: Commands, client: &MoltbookClient) -> Result<(), A
         } => submolt::create_submolt(client, &name, &display_name, description, allow_crypto).await,
         Commands::Subscribe { name } => submolt::subscribe(client, &name).await,
         Commands::Unsubscribe { name } => submolt::unsubscribe(client, &name).await,
-        Commands::SubmoltInfo { name } => submolt::submolt_info(client, &name).await,
+        Commands::SubmoltInfo { name, requester_id } => {
+            submolt::submolt_info(client, &name, requester_id.as_deref()).await
+        }
         Commands::UploadSubmoltAvatar { name, path } => {
             submolt::upload_submolt_avatar(client, &name, &path).await
         }

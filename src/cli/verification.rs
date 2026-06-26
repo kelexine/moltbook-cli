@@ -37,6 +37,11 @@ pub fn handle_verification(result: &serde_json::Value, action: &str) -> bool {
         println!("\n{}", "🔒 Verification Required".yellow().bold());
         println!("{}", instructions);
         println!("Challenge: {}\n", challenge.cyan().bold());
+
+        if let Some(exp) = v["expires_at"].as_str() {
+            println!("Expires: {}", crate::display::relative_time(exp).yellow());
+        }
+
         println!("To complete your {}, run:", action);
         println!(
             "  moltbook verify --code \"{}\" --solution \"<YOUR_ANSWER>\"",
